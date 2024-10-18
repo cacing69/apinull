@@ -1,0 +1,4 @@
+routes:
+  - path: /test
+    handler: User\Handlers\UserHandler::test
+    methods: [GET]

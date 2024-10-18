@@ -1,0 +1,80 @@
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+// use Modules\User\Handlers\UserHandler;
+use App\Core\Router;
+use App\Http\Middlewares\JsonResponseMiddleware;
+
+// function loadRoutes() {
+//     $rootRoutes = Yaml::parseFile(__DIR__ . '/configs/routes.yaml');
+//     $allRoutes = [];
+
+//     // Memuat file routing root
+//     if (isset($rootRoutes['imports'])) {
+//         foreach ($rootRoutes['imports'] as $import) {
+//             $importedRoutes = Yaml::parseFile($import['resource']);
+//             $allRoutes = array_merge($allRoutes, $importedRoutes['routes']);
+//         }
+//     }
+
+//     return $allRoutes;
+// }
+// Baca rute dari file YAML
+$router = new Router(__DIR__ . '/configs/routes.yaml');
+
+// Ambil request URI dari server
+$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+// // Fungsi untuk menjalankan middleware
+// function runMiddleware($request, $handler) {
+//     // Inisiasi middleware
+//     $middleware = new JsonResponseMiddleware();
+
+//     // Jalankan handler melalui middleware
+//     return $middleware->handle($request, function($request) use ($handler) {
+//         // Jalankan handler yang sesuai
+//         return $handler->handle($request);
+//     });
+// }
+
+// Dapatkan respons dari handler yang sesuai
+$response = $router->dispatch($requestUri);
+
+// function handleRequest() {
+//     $routes = loadRoutes();
+//     $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+//     $requestMethod = $_SERVER['REQUEST_METHOD'];
+
+//     // $test = new UserHandler();
+
+//     // var_dump($test);
+
+
+
+//     foreach ($routes as $route) {
+//         if ($route['path'] === $requestUri && in_array($requestMethod, $route['methods'])) {
+//             $handlerInfo = explode('::', $route['handler']);
+//             $handlerClass = 'Modules\\' . $handlerInfo[0];
+//             $handlerMethod = $handlerInfo[1];
+
+
+//             // var_dump($handlerClass, class_exists($handlerClass));
+//             // die();
+//             if (class_exists($handlerClass)) {
+//                 $controller = new $handlerClass();
+//                 if (method_exists($controller, $handlerMethod)) {
+//                     return $controller->$handlerMethod();
+//                 }
+//             }
+//         }
+//     }
+
+//     http_response_code(404);
+//     echo "404 Not Found";
+// }
+
+// handleRequest();
+// Gunakan middleware untuk mengonversi respons ke JSON
+$middleware = new JsonResponseMiddleware();
+$middleware->handle($response);

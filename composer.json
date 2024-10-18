@@ -1,0 +1,19 @@
+{
+  "name": "cacing69/apinull",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "Modules\\": "modules/",
+      "App\\": "app/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Ibnul Mutaki",
+      "email": "ibnuul@gmail.com"
+    }
+  ],
+  "require": {
+    "symfony/yaml": "^7.1"
+  }
+}
