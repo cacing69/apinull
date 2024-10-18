@@ -1,4 +1,8 @@
 routes:
-  - path: /test
-    handler: User\Handlers\UserHandler::test
+  - path: /profile
+    handler: User\Handlers\UserHandler::profile
+    methods: [GET]
+
+  - path: /check/{id}
+    handler: User\Handlers\UserHandler::check
     methods: [GET]

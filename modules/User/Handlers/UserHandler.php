@@ -3,8 +3,18 @@ namespace Modules\User\Handlers;
 
 class UserHandler
 {
-    public function test()
+    public function profile()
     {
-        echo json_encode(["user1", "user2", "user3"]);
+        $data = [
+            "name" => "cacing69"
+        ];
+
+        return $data;
+    }
+
+    public function check($id)
+    {
+        // Logika untuk mengambil pengguna berdasarkan ID
+        return ['id' => $id];
     }
 }
