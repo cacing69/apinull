@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use App\Core\ServiceContainer;
 use App\Core\LogManager;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,10 +13,12 @@ class Router
     private $routes;
     private $allRoutes = [];
     private $logger;
+    private $serviceContainer; // Tambahkan property untuk ServiceContainer
 
-    public function __construct($configFile)
+    public function __construct($configFile, ServiceContainer $serviceContainer)
     {
         $this->routes = Yaml::parseFile($configFile);
+        $this->serviceContainer = $serviceContainer; // Simpan ServiceContainer
 
         // Inisialisasi logger
         $logManager = new LogManager();
@@ -57,7 +60,17 @@ class Router
                         return $this->createErrorResponse("Handler class '{$handlerClass}' not found", 404);
                     }
 
-                    $handler = new $handlerClass();
+                    // $expHandlerClass = explode("\\", $handlerClass);
+
+                    // $handlerSc = end($expHandlerClass);
+
+                    //                     // Mendapatkan instance handler dari ServiceContainer
+                    // $handler = $this->serviceContainer->get($handlerSc); // Memanggil handler dengan format yang tepat
+
+                    // if(!$handler) {
+                        $handler = new $handlerClass($this->serviceContainer);
+                    // }
+
 
                     // **Cek apakah method handler ada di dalam class**
                     if (!method_exists($handler, $handlerMethod)) {

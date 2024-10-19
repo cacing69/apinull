@@ -5,7 +5,10 @@
     "psr-4": {
       "Modules\\": "modules/",
       "App\\": "app/"
-    }
+    },
+    "files": [
+      "app/helpers.php"
+    ]
   },
   "authors": [
     {
@@ -18,6 +21,8 @@
     "symfony/http-foundation": "^7.1",
     "monolog/monolog": "^3.7",
     "nesbot/carbon": "^3.8",
-    "symfony/validator": "^7.1"
+    "symfony/validator": "^7.1",
+    "symfony/var-dumper": "^7.1",
+    "psr/container": "^2.0"
   }
 }

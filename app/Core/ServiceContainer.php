@@ -1,25 +1,27 @@
 <?php
 namespace App\Core;
 
-use Symfony\Component\HttpFoundation\RequestStack;
+use Psr\Container\ContainerInterface;
 
-class ServiceContainer
+class ServiceContainer implements ContainerInterface
 {
     private $services = [];
 
-    public function __construct()
+    public function set($name, $service)
     {
-        // Mendaftarkan service yang diperlukan
-        $this->services['request_stack'] = new RequestStack(); // Inisialisasi RequestStack
-        $this->services['user_handler'] = new \Modules\User\Handlers\UserHandler($this->services['request_stack']);
+        $this->services[$name] = $service;
     }
 
-    public function get($service)
+    public function get($name)
     {
-        if (!isset($this->services[$service])) {
-            throw new \Exception("Service {$service} not found.");
+        if (!isset($this->services[$name])) {
+            throw new \Exception("Service not found: $name");
         }
+        return $this->services[$name];
+    }
 
-        return $this->services[$service];
+    public function has($name) :bool
+    {
+        return isset($this->services[$name]);
     }
 }

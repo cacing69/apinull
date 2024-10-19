@@ -3,6 +3,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 // use Modules\User\Handlers\UserHandler;
+use App\Core\ServiceContainer;
 use App\Http\Router;
 use App\Http\Middlewares\JsonResponseMiddleware;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,12 +23,20 @@ use Symfony\Component\HttpFoundation\Request;
 //     return $allRoutes;
 // }
 // Baca rute dari file YAML
-$router = new Router(__DIR__ . '/configs/routes.yaml');
+$request = Request::createFromGlobals();
+
+$serviceContainer = new ServiceContainer();
+
+$serviceContainer->set('request', $request);
+
+// dd($serviceContainer);
+// Misalnya di index.php atau di tempat lain saat menginisialisasi aplikasi
+$router = new Router(__DIR__ . '/configs/routes.yaml', $serviceContainer);
 
 // Ambil request URI dari server
 // $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 // Buat objek Request dari globals
-$request = Request::createFromGlobals();
+
 
 // // Fungsi untuk menjalankan middleware
 // function runMiddleware($request, $handler) {

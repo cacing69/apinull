@@ -1,19 +1,19 @@
 <?php
 namespace Modules\User\Handlers;
-use App\Core\LogManager;
+use App\Core\BaseHandler;
 use Symfony\Component\HttpFoundation\Request;
 
-class UserHandler
+class UserHandler extends BaseHandler
 {
-    private $logger;
+    // private $logger;
 
-    public function __construct()
-    {
+    // public function __construct()
+    // {
 
-        // Inisialisasi logger
-        $logManager = new LogManager();
-        $this->logger = $logManager->getLogger();
-    }
+    //     // Inisialisasi logger
+    //     $logManager = new LogManager();
+    //     $this->logger = $logManager->getLogger();
+    // }
     public function ping()
     {
         $this->logger->info('UserHandler: ping method called');
@@ -35,9 +35,12 @@ class UserHandler
 
     public function check($id)
     {
+        // dd($this->request);
         // $request = Request::createFromGlobals();
 
         // $request->request->all();
+
+        // dd($this->request);
 
         // var_dump($request->query->get('id'));
         // die();
