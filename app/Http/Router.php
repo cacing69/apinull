@@ -4,6 +4,9 @@ namespace App\Http;
 
 use App\Core\ServiceContainer;
 use App\Core\LogManager;
+use App\Http\Middleware\CorsMiddleware;
+use App\Http\Middleware\FixHeadersMiddleware;
+use App\Http\Middlewares\InputSanitizationMiddleware;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Yaml\Yaml;
@@ -30,6 +33,15 @@ class Router
                 $this->allRoutes = array_merge($this->allRoutes, $importedRoutes['routes']);
             }
         }
+
+        $globalMiddleware = [
+            CorsMiddleware::class,
+            FixHeadersMiddleware::class,
+            InputSanitizationMiddleware::class // Menambahkan Input Sanitization Middleware
+        ];
+
+        $this->allRoutes = $this->addGlobalMiddleware($this->allRoutes, $globalMiddleware);
+        // dd($this->allRoutes);
     }
 
     public function dispatch(Request $request): Response
@@ -119,7 +131,12 @@ class Router
         }
 
         $middlewareName = array_shift($middlewares);
-        $middlewareClass = "App\\Http\\Middlewares\\" . ucfirst($middlewareName) . "Middleware";
+
+        if(in_array($middlewareName, ["auth"])) {
+            $middlewareClass = "App\\Http\\Middlewares\\" . ucfirst($middlewareName) . "Middleware";
+        } else {
+            $middlewareClass = "App\\Http\\Middlewares\\" .$middlewareName;
+        }
 
         if (!class_exists($middlewareClass)) {
             return new Response(
@@ -145,5 +162,19 @@ class Router
             $statusCode,
             ['Content-Type' => 'application/json']
         );
+    }
+
+    private function addGlobalMiddleware(array $routes, array $middlewareClass): array
+    {
+        foreach ($routes as &$route) {
+            if (!isset($route['middleware'])) {
+                $route['middleware'] = [];
+            }
+            foreach ($middlewareClass as $middleware) {
+                $route['middleware'][] = basename(str_replace('\\', '/', $middleware)); // Menambahkan CORS middleware
+            }
+        }
+
+        return $routes;
     }
 }
