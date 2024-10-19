@@ -3,10 +3,18 @@ namespace Modules\User\Handlers;
 
 class UserHandler
 {
+    public function ping()
+    {
+        $data = [
+            "ping" => "pong"
+        ];
+
+        return $data;
+    }
     public function profile()
     {
         $data = [
-            "name" => "cacing69"
+            "username" => "cacing69"
         ];
 
         return $data;

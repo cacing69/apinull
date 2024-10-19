@@ -3,7 +3,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 // use Modules\User\Handlers\UserHandler;
-use App\Core\Router;
+use App\Http\Router;
 use App\Http\Middlewares\JsonResponseMiddleware;
 
 // function loadRoutes() {
@@ -40,6 +40,12 @@ $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // Dapatkan respons dari handler yang sesuai
 $response = $router->dispatch($requestUri);
+
+// Jika tidak ditemukan rute yang sesuai, berikan status code 404
+if (isset($response['error']) && $response['error'] === 'Route not found') {
+    http_response_code(404);
+    $response = ['error' => '404 Not Found'];
+}
 
 // function handleRequest() {
 //     $routes = loadRoutes();

@@ -1,8 +1,13 @@
 routes:
-  - path: /profile
-    handler: User\Handlers\UserHandler::profile
+  - path: /ping
+    handler: Modules\User\Handlers\UserHandler::ping
     methods: [GET]
 
+  - path: /profile
+    handler: Modules\User\Handlers\UserHandler::profile
+    methods: [GET]
+    middleware: [auth]
+
   - path: /check/{id}
-    handler: User\Handlers\UserHandler::check
+    handler: Modules\User\Handlers\UserHandler::check
     methods: [GET]
