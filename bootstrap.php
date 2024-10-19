@@ -5,6 +5,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 // use Modules\User\Handlers\UserHandler;
 use App\Http\Router;
 use App\Http\Middlewares\JsonResponseMiddleware;
+use Symfony\Component\HttpFoundation\Request;
 
 // function loadRoutes() {
 //     $rootRoutes = Yaml::parseFile(__DIR__ . '/configs/routes.yaml');
@@ -24,7 +25,9 @@ use App\Http\Middlewares\JsonResponseMiddleware;
 $router = new Router(__DIR__ . '/configs/routes.yaml');
 
 // Ambil request URI dari server
-$requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+// $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+// Buat objek Request dari globals
+$request = Request::createFromGlobals();
 
 // // Fungsi untuk menjalankan middleware
 // function runMiddleware($request, $handler) {
@@ -39,13 +42,14 @@ $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 // }
 
 // Dapatkan respons dari handler yang sesuai
-$response = $router->dispatch($requestUri);
+$response = $router->dispatch($request);
 
-// Jika tidak ditemukan rute yang sesuai, berikan status code 404
-if (isset($response['error']) && $response['error'] === 'Route not found') {
-    http_response_code(404);
-    $response = ['error' => '404 Not Found'];
-}
+// // Jika tidak ditemukan rute yang sesuai, berikan status code 404
+// // Dispatch request dan ambil respons
+// $response = $router->dispatch($request);
+
+// // Kirim respons ke klien
+// $response->send();
 
 // function handleRequest() {
 //     $routes = loadRoutes();
@@ -82,5 +86,11 @@ if (isset($response['error']) && $response['error'] === 'Route not found') {
 
 // handleRequest();
 // Gunakan middleware untuk mengonversi respons ke JSON
+// Gunakan middleware untuk mengonversi respons ke JSON
 $middleware = new JsonResponseMiddleware();
-$middleware->handle($response);
+$jsonResponse = $middleware->handle($request, function($request) use ($response) {
+    return $response; // Mengembalikan respons asli ke middleware
+});
+
+// Kirim respons JSON ke klien
+$jsonResponse->send();

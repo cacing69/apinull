@@ -1,3 +1,4 @@
+module: User
 routes:
   - path: /ping
     handler: Modules\User\Handlers\UserHandler::ping
