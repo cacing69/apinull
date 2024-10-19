@@ -4,8 +4,6 @@ namespace App\Http;
 
 use App\Core\ServiceContainer;
 use App\Core\LogManager;
-use App\Http\Middleware\CorsMiddleware;
-use App\Http\Middleware\FixHeadersMiddleware;
 use App\Http\Middlewares\InputSanitizationMiddleware;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,8 +33,8 @@ class Router
         }
 
         $globalMiddleware = [
-            CorsMiddleware::class,
-            FixHeadersMiddleware::class,
+            \App\Http\Middlewares\CorsMiddleware::class,
+            \App\Http\Middlewares\FixHeadersMiddleware::class,
             InputSanitizationMiddleware::class // Menambahkan Input Sanitization Middleware
         ];
 

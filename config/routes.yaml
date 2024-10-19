@@ -1,2 +1,2 @@
 imports:
-  - { resource: ../modules/User/user.routes.yaml }
+  - { resource: ../modules/User/routes.yaml }

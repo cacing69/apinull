@@ -3,10 +3,18 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 // use Modules\User\Handlers\UserHandler;
+// use App\Console\AppConsole;
+// use App\Console\ConsoleKernel;
 use App\Core\ServiceContainer;
 use App\Http\Router;
 use App\Http\Middlewares\JsonResponseMiddleware;
 use Symfony\Component\HttpFoundation\Request;
+
+// Inisialisasi aplikasi
+// $application = new ConsoleKernel();
+
+// // Menjalankan aplikasi konsol
+// $application->run();
 
 // function loadRoutes() {
 //     $rootRoutes = Yaml::parseFile(__DIR__ . '/configs/routes.yaml');

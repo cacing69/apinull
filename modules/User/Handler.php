@@ -1,19 +1,20 @@
 <?php
-namespace Modules\User\Handlers;
+namespace Modules\User;
 use App\Core\BaseHandler;
+use App\Core\ServiceContainer;
 use Symfony\Component\HttpFoundation\Request;
 
-class UserHandler extends BaseHandler
+class Handler extends BaseHandler
 {
     // private $logger;
 
-    // public function __construct()
-    // {
-
-    //     // Inisialisasi logger
-    //     $logManager = new LogManager();
-    //     $this->logger = $logManager->getLogger();
-    // }
+    public function __construct(ServiceContainer $container)
+    {
+        parent::__construct($container);
+        // Inisialisasi logger
+        // $logManager = new LogManager();
+        // $this->logger = $logManager->getLogger();
+    }
     public function ping()
     {
         $this->logger->info('UserHandler: ping method called');
