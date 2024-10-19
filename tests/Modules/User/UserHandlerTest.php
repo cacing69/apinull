@@ -4,8 +4,6 @@ namespace Tests\Modules\User;
 
 use App\Core\ServiceContainer;
 use Modules\User\Handlers\UserHandler;
-use App\Services\UserService;
-use Symfony\Component\HttpFoundation\Request;
 use PHPUnit\Framework\TestCase;
 
 class UserHandlerTest extends TestCase
