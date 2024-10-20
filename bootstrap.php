@@ -33,13 +33,14 @@ use Symfony\Component\HttpFoundation\Request;
 // Baca rute dari file YAML
 $request = Request::createFromGlobals();
 
-$serviceContainer = new ServiceContainer();
+// $serviceContainer = new ServiceContainer();
 
-$serviceContainer->set('request', $request);
+// $serviceContainer->set('request', $request);
 
 // dd($serviceContainer);
 // Misalnya di index.php atau di tempat lain saat menginisialisasi aplikasi
-$router = new Router(__DIR__ . '/config/routes.yaml', $serviceContainer);
+// $router = new Router(__DIR__ . '/config/routes.yaml', $serviceContainer);
+$router = new Router(__DIR__ . '/config/routes.yaml');
 
 // Ambil request URI dari server
 // $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

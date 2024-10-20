@@ -1,16 +1,16 @@
 <?php
 namespace Modules\User;
 use App\Core\BaseHandler;
-use App\Core\ServiceContainer;
 use Symfony\Component\HttpFoundation\Request;
 
 class Handler extends BaseHandler
 {
     // private $logger;
 
-    public function __construct(ServiceContainer $container)
+    // public function __construct(ServiceContainer $container)
+    public function __construct()
     {
-        parent::__construct($container);
+        parent::__construct();
         // Inisialisasi logger
         // $logManager = new LogManager();
         // $this->logger = $logManager->getLogger();
@@ -34,8 +34,14 @@ class Handler extends BaseHandler
         return $data;
     }
 
-    public function check($id)
+    public function check(Request $request, $id)
     {
+        // Validasi bahwa id harus integer
+        if (!filter_var($id, FILTER_VALIDATE_INT)) {
+            return [
+                'error' => 'Invalid ID, must be an integer',
+            ];
+        }
         // dd($this->request);
         // $request = Request::createFromGlobals();
 
@@ -46,18 +52,18 @@ class Handler extends BaseHandler
         // var_dump($request->query->get('id'));
         // die();
         // Logika untuk mengambil pengguna berdasarkan ID
-        return ['id' => $id];
+        return ['id' => $id, "params" => $request->query->get('id')];
     }
 
     public function submitForm(Request $request)
-{
-    // Mengambil data dari form
-    $formData = $request->request->all();
-    $name = $request->request->get('name');
+    {
+        // Mengambil data dari form
+        $formData = $request->request->all();
+        $name = $request->request->get('name');
 
-    return [
-        'form_data' => $formData,
-        'name' => $name,
-    ];
-}
+        return [
+            'form_data' => $formData,
+            'name' => $name,
+        ];
+    }
 }
