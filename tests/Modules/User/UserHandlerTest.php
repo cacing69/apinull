@@ -3,7 +3,7 @@
 namespace Tests\Modules\User;
 
 use App\Core\ServiceContainer;
-use Modules\User\Handlers\UserHandler;
+use Modules\User\Handler;
 use PHPUnit\Framework\TestCase;
 
 class UserHandlerTest extends TestCase
@@ -17,7 +17,7 @@ class UserHandlerTest extends TestCase
         $this->container = $this->createMock(ServiceContainer::class);
 
         // Instance UserHandler dengan UserService yang di-mock
-        $this->userHandler = new UserHandler($this->container);
+        $this->userHandler = new Handler();
     }
 
     public function testCreateUser()

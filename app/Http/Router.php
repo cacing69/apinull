@@ -14,26 +14,28 @@ class Router
     private $routes;
     private $allRoutes = [];
     private $logger;
-    private $serviceContainer; // Tambahkan property untuk ServiceContainer
-
     private $mapMiddleware = [
-            "auth" => AuthMiddleware::class
-        ];
+        "auth" => AuthMiddleware::class
+    ];
     private $globalMiddleware = [
         \App\Http\Middlewares\CorsMiddleware::class,
         \App\Http\Middlewares\FixHeadersMiddleware::class,
-        InputSanitizationMiddleware::class // Menambahkan Input Sanitization Middleware
+        InputSanitizationMiddleware::class // Middleware sanitasi input
     ];
-    // public function __construct($configFile, ServiceContainer $serviceContainer)
+
+    /**
+     * Constructor untuk inisialisasi router dengan file YAML dan logger
+     * @param string $configFile
+     */
     public function __construct($configFile)
     {
         $this->routes = Yaml::parseFile($configFile);
-        // $this->serviceContainer = $serviceContainer; // Simpan ServiceContainer
 
         // Inisialisasi logger
         $logManager = new LogManager();
         $this->logger = $logManager->getLogger();
 
+        // Muat rute tambahan yang diimpor dari file lain
         if (isset($this->routes['imports'])) {
             foreach ($this->routes['imports'] as $import) {
                 $importedRoutes = Yaml::parseFile($import['resource']);
@@ -41,32 +43,44 @@ class Router
             }
         }
 
-
+        // Tambahkan middleware global ke semua rute
         $this->allRoutes = $this->addGlobalMiddleware($this->allRoutes, $this->globalMiddleware);
-        // dd($this->allRoutes);
     }
 
-    protected function getParamsFromPath($routePath, $actualPath) {
-        // Contoh sederhana untuk mengekstrak parameter seperti /check/{id}
+    /**
+     * Mengekstrak parameter dari path seperti /check/{id}
+     * @param string $routePath
+     * @param string $actualPath
+     * @return array
+     */
+    protected function getParamsFromPath($routePath, $actualPath)
+    {
         $routeParts = explode('/', trim($routePath, '/'));
         $actualParts = explode('/', trim($actualPath, '/'));
         $params = [];
-        foreach ($routeParts as $index => $part) { if (strpos($part, '{') === 0 && strpos($part, '}') === strlen($part) - 1) { $paramName = trim($part, '{}'); $params[$paramName] = $actualParts[$index] ?? null; } } return $params;
+
+        foreach ($routeParts as $index => $part) {
+            if (strpos($part, '{') === 0 && strpos($part, '}') === strlen($part) - 1) {
+                $paramName = trim($part, '{}');
+                $params[$paramName] = $actualParts[$index] ?? null;
+            }
+        }
+
+        return $params;
     }
 
-    // protected function handleNotFound() { http_response_code(404); echo "404 Not Found"; }
-
-    // protected function loadRoutes($routeFile) { $this->routes = Yaml::parseFile($routeFile)['routes']; }
-
+    /**
+     * Mendapatkan dan mendispatch request sesuai rute yang terdaftar
+     * @param Request $request
+     * @return Response
+     */
     public function dispatch(Request $request): Response
     {
         $requestId = uniqid('request_', true);
-        // $requestUri = $request->getPathInfo();
         $path = $request->getPathInfo();
         $method = $request->getMethod();
-        // $requestMethod = $request->getMethod();
 
-        // Catat permintaan yang diterima
+        // Logging request yang diterima
         $this->logger->info('Dispatching request', [
             'requestId' => $requestId,
             'uri' => $path,
@@ -75,144 +89,63 @@ class Router
 
         try {
             foreach ($this->allRoutes as $route) {
+                // Cek apakah rute cocok dengan URI dan metode request
                 $routePath = preg_replace('/\{[a-zA-Z]+\}/', '([a-zA-Z0-9]+)', $route['path']);
-
-                if (preg_match('#^' . $routePath . '$#', $path, $matches) && in_array($method, $route['methods'])) {
-                    // dd($routePath, $route['path'], $path);
-                    if(in_array($method, $route["methods"])){
-                    // array_shift($matches); // Menghapus full match
-                    // $handlerInfo = explode('::', $route['handler']);
-                    // $handlerClass = $handlerInfo[0];
-                    // $handlerMethod = $handlerInfo[1];
-
-
+                if (preg_match('#^' . $routePath . '$#', $path) && in_array($method, $route['methods'])) {
                     [$handlerClass, $handlerMethod] = explode('::', $route['handler']);
                     $handler = new $handlerClass();
 
                     $params = $this->getParamsFromPath($route['path'], $path);
 
+                    // Reflection untuk mendapatkan parameter dari handler method
                     $reflectionMethod = new \ReflectionMethod($handlerClass, $handlerMethod);
                     $methodParams = $reflectionMethod->getParameters();
 
-                    $args = [];
+                    $args = $this->resolveMethodArgs($methodParams, $params, $request);
 
-
-
-                    // foreach ($methodParams as $param) {
-                    //     if($param->getClass() && $param->getClass()->name === Request::class) {
-                    //         $args[] = $request;
-                    //     } elseif (isset($params[$param->name])) {
-                    //         $args[] = $params[$param->name];
-                    //     } else {
-                    //         $args[] = null;
-                    //     }
-                    // }
-
-                    foreach ($methodParams as $param) {
-                        $paramType = $param->getType();
-
-                        // Cek apakah tipe parameter adalah sebuah class (non-builtin)
-                        if ($paramType instanceof \ReflectionNamedType && !$paramType->isBuiltin()) {
-                            $paramClass = new \ReflectionClass($paramType->getName());
-
-                            // Jika parameternya adalah Request
-                            if ($paramClass->getName() === Request::class) {
-                                $args[] = $request;
-                            }
-                            // Cek apakah parameter ada di $params (yang diekstrak dari route)
-                            elseif (isset($params[$param->getName()])) {
-                                $args[] = $params[$param->getName()];
-                            } else {
-                                // Jika parameter class, tetapi tidak ada di route atau request, set null
-                                $args[] = null;
-                            }
-                        } else {
-                            // Untuk tipe built-in atau yang tidak diketahui, cek apakah ada di $params
-                            if (isset($params[$param->getName()])) {
-                                $args[] = $params[$param->getName()];
-                            } else {
-                                // Set default value jika ada, atau null jika tidak ada
-                                $args[] = $param->isOptional() ? $param->getDefaultValue() : null;
-                            }
-                        }
-                    }
-
-
-                    // **Cek apakah class handler ada**
-                    // if (!class_exists($handlerClass)) {
-                    //     return $this->createErrorResponse("Handler class '{$handlerClass}' not found", 404);
-                    // }
-
-                    // $expHandlerClass = explode("\\", $handlerClass);
-
-                    // $handlerSc = end($expHandlerClass);
-
-                    //                     // Mendapatkan instance handler dari ServiceContainer
-                    // $handler = $this->serviceContainer->get($handlerSc); // Memanggil handler dengan format yang tepat
-
-                    // if(!$handler) {
-                        // $handler = new $handlerClass($this->serviceContainer);
-                    // }
-
-
-                    // **Cek apakah method handler ada di dalam class**
-                    // if (!method_exists($handler, $handlerMethod)) {
-                    //     return $this->createErrorResponse("Method '{$handlerMethod}' not found in class '{$handlerClass}'", 404);
-                    // }
-
-                    // Eksekusi middleware jika ada
-                    $middlewares = isset($route['middleware']) ? $route['middleware'] : [];
-
+                    // Eksekusi middleware dan handler
+                    $middlewares = $route['middleware'] ?? [];
                     $response = $this->runMiddlewares($middlewares, $request, function ($request) use ($handler, $handlerMethod, $args) {
                         return new Response(
-                            // json_encode($handler->$handlerMethod(...$matches)),
                             json_encode(call_user_func_array([$handler, $handlerMethod], $args)),
                             200,
                             ['Content-Type' => 'application/json']
                         );
-                        // return call_user_func_array([$handler, $handlerMethod], $args);
                     });
 
-                    // Pastikan response adalah objek Response
-                    if ($response instanceof Response) {
-                        return $response;
-                    }
-
-                    // Jika bukan response, kembalikan sebagai error
-                    return $this->createErrorResponse("Unexpected response type", 500);
+                    return $response instanceof Response ? $response : $this->createErrorResponse("Unexpected response type", 500);
                 }
             }
-            }
 
-            // Jika tidak ada rute yang cocok
             return $this->createErrorResponse('Route not found', 404);
         } catch (\Throwable $exception) {
-            // Catat kesalahan yang terjadi
+            // Logging kesalahan yang terjadi
             $this->logger->error('An error occurred', [
                 'message' => $exception->getMessage(),
                 'stack' => $exception->getTraceAsString(),
             ]);
 
-            // Menangkap exception dan mengalihkan ke Exception Handler
+            // Menangani exception dan mengembalikan response yang sesuai
             $exceptionHandler = new \App\Core\ExceptionHandler();
             return $exceptionHandler->handle($exception);
         }
     }
 
+    /**
+     * Menjalankan middleware satu per satu
+     * @param array $middlewares
+     * @param Request $request
+     * @param callable $next
+     * @return Response
+     */
     private function runMiddlewares(array $middlewares, Request $request, callable $next): Response
     {
         if (empty($middlewares)) {
-            return $next($request); // Memastikan $next di sini memanggil handler dengan Request
+            return $next($request);
         }
 
         $middlewareName = array_shift($middlewares);
-
-        if(in_array($middlewareName, array_keys($this->mapMiddleware))) {
-            // $middlewareClass = "App\\Http\\Middlewares\\" . ucfirst($middlewareName) . "Middleware";
-            $middlewareClass = $this->mapMiddleware[$middlewareName];
-        } else {
-            $middlewareClass = "App\\Http\\Middlewares\\" .$middlewareName;
-        }
+        $middlewareClass = $this->mapMiddleware[$middlewareName] ?? "App\\Http\\Middlewares\\{$middlewareName}";
 
         if (!class_exists($middlewareClass)) {
             return new Response(
@@ -223,14 +156,17 @@ class Router
         }
 
         $middleware = new $middlewareClass();
-
-        // Memanggil middleware dengan Request
         return $middleware->handle($request, function ($request) use ($middlewares, $next) {
             return $this->runMiddlewares($middlewares, $request, $next);
         });
     }
 
-
+    /**
+     * Membuat response error
+     * @param string $message
+     * @param int $statusCode
+     * @return Response
+     */
     private function createErrorResponse(string $message, int $statusCode): Response
     {
         return new Response(
@@ -240,17 +176,52 @@ class Router
         );
     }
 
+    /**
+     * Menambahkan middleware global ke semua rute
+     * @param array $routes
+     * @param array $middlewareClass
+     * @return array
+     */
     private function addGlobalMiddleware(array $routes, array $middlewareClass): array
     {
         foreach ($routes as &$route) {
-            if (!isset($route['middleware'])) {
-                $route['middleware'] = [];
-            }
-            foreach ($middlewareClass as $middleware) {
-                $route['middleware'][] = basename(str_replace('\\', '/', $middleware)); // Menambahkan CORS middleware
-            }
+            $route['middleware'] = array_merge($route['middleware'] ?? [], array_map(function ($middleware) {
+                return basename(str_replace('\\', '/', $middleware));
+            }, $middlewareClass));
         }
 
         return $routes;
+    }
+
+    /**
+     * Resolusi argument untuk handler method berdasarkan parameter dan request
+     * @param array $methodParams
+     * @param array $params
+     * @param Request $request
+     * @return array
+     */
+    private function resolveMethodArgs(array $methodParams, array $params, Request $request): array
+    {
+        $args = [];
+
+        foreach ($methodParams as $param) {
+            $paramType = $param->getType();
+
+            if ($paramType instanceof \ReflectionNamedType && !$paramType->isBuiltin()) {
+                $paramClass = new \ReflectionClass($paramType->getName());
+
+                if ($paramClass->getName() === Request::class) {
+                    $args[] = $request;
+                } elseif (isset($params[$param->getName()])) {
+                    $args[] = $params[$param->getName()];
+                } else {
+                    $args[] = null;
+                }
+            } else {
+                $args[] = $params[$param->getName()] ?? ($param->isOptional() ? $param->getDefaultValue() : null);
+            }
+        }
+
+        return $args;
     }
 }
