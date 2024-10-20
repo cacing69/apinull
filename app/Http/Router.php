@@ -113,11 +113,11 @@ class Router
                         );
                     });
 
-                    return $response instanceof Response ? $response : $this->createErrorResponse("Unexpected response type", 500);
+                    return $response instanceof Response ? $response : $this->createErrorResponse("unexpected response type", 500);
                 }
             }
 
-            return $this->createErrorResponse('Route not found', 404);
+            return $this->createErrorResponse('route not found', 404);
         } catch (\Throwable $exception) {
             // Logging kesalahan yang terjadi
             $this->logger->error('An error occurred', [
