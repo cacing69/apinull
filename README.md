@@ -3,8 +3,6 @@
 API Framework Modular dan Fleksibel
 ApiNull adalah framework API berbasis PHP yang memudahkan pengembangan aplikasi modular dan fleksibel. Dengan struktur yang rapi dan dukungan middleware, Anda dapat membuat API yang kuat dan mudah dikelola.
 
-Keunggulan ApiNull
-
 - Modular: Fitur API dipecah menjadi modul yang terpisah, sehingga mudah dikembangkan dan dipelihara.
 - Routing YAML: Gunakan file YAML yang sederhana untuk mengelola rute API dengan cepat.
 - Middleware Dinamis: Tambahkan middleware sesuai kebutuhan untuk validasi, otorisasi, dan lainnya.
@@ -83,6 +81,9 @@ class Handler
     public function check(int $id, string $name): Response
     {
         return new Response("ID: $id, Name: $name", 200);
+
+        // atau
+        // return ["id" => $id, "name" => $name];
     }
 }
 ```
