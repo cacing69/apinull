@@ -17,7 +17,7 @@ class Handler extends BaseHandler
     }
     public function ping()
     {
-        $this->logger->info('UserHandler: ping method called');
+        // $this->logger->info('UserHandler: ping method called');
 
         $data = [
             "ping" => "pong"
