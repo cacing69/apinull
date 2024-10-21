@@ -1,0 +1,19 @@
+module: User
+routes:
+  - path: /ping
+    handler: Modules\User\Http\UserHandler::ping
+    methods: [GET]
+
+  - path: /profile
+    handler: Modules\User\Http\UserHandler::profile
+    methods: [GET]
+    middleware: [auth]
+
+  - path: /check/{id}
+    handler: Modules\User\Http\UserHandler::check
+    methods: [GET]
+
+
+  - path: /check-db
+    handler: Modules\User\Http\UserHandler::checkDb
+    methods: [GET]

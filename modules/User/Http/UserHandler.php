@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\User;
+namespace Modules\User\Http;
 
 use App\Core\BaseHandler;
 use Illuminate\Http\Request;
@@ -8,7 +8,7 @@ use Modules\User\UserTable;
 // use Symfony\Component\HttpFoundation\Request;
 // use Symfony\Component\HttpFoundation\Response;
 
-class Handler extends BaseHandler
+class UserHandler extends BaseHandler
 {
     // private $logger;
 
