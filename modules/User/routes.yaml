@@ -12,3 +12,8 @@ routes:
   - path: /check/{id}
     handler: Modules\User\Handler::check
     methods: [GET]
+
+
+  - path: /check-db
+    handler: Modules\User\Handler::checkDb
+    methods: [GET]

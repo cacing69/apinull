@@ -1,6 +1,9 @@
 <?php
+
 namespace Modules\User;
+
 use App\Core\BaseHandler;
+use Modules\User\UserTable;
 use Symfony\Component\HttpFoundation\Request;
 
 class Handler extends BaseHandler
@@ -55,15 +58,10 @@ class Handler extends BaseHandler
         return ['id' => $id, "params" => $request->query->get('id')];
     }
 
-    public function submitForm(Request $request)
+    public function checkDb()
     {
-        // Mengambil data dari form
-        $formData = $request->request->all();
-        $name = $request->request->get('name');
+        $user = UserTable::all();
 
-        return [
-            'form_data' => $formData,
-            'name' => $name,
-        ];
+        return $user;
     }
 }
