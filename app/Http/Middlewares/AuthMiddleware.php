@@ -2,7 +2,7 @@
 
 namespace App\Http\Middlewares;
 use App\Core\LogManager;
-use Symfony\Component\HttpFoundation\Request;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthMiddleware
@@ -16,11 +16,11 @@ class AuthMiddleware
         $logManager = new LogManager();
         $this->logger = $logManager->getLogger();
     }
-    public function handle(Request $request, callable $next): Response
+    public function handle(Request $request, callable $next)
     {
-        $request = Request::createFromGlobals();
+        // $request = Request::createFromGlobals();
 
-        $authHeader = $request->headers->get('Authorization');
+        $authHeader = 'Bearer xyz.abc';
 
         if (!$authHeader) {
             $this->logger->warning('Bearer token not provided', [
@@ -45,34 +45,4 @@ class AuthMiddleware
         // Jika otentikasi berhasil, teruskan permintaan
         return $next($request); // Pastikan ini mengembalikan Response
     }
-    // public function handle($request, $next)
-    // {
-    //     $this->logger->info('AuthMiddleware: Handling request', [
-    //         'uri' => $request->getPathInfo(),
-    //         'method' => $request->getMethod(),
-    //     ]);
-
-    //     // Cek token autentikasi di header Authorization
-    //    // Buat objek request Symfony
-    //     $request = Request::createFromGlobals();
-
-    //     // Cek header Authorization
-    //     $authHeader = $request->headers->get('Authorization');
-
-    //     if (!$authHeader) {
-    //         $this->logger->warning('Unauthorized access attempt', [
-    //             'uri' => $request->getPathInfo(),
-    //         ]);
-
-    //         // Mengembalikan respons error tanpa exit
-
-
-    //         return ['error' => 'unauthorized'];
-
-    //     }
-    //     // logic check token
-
-    //     // Lanjutkan ke handler berikutnya jika autentikasi berhasil
-    //     return $next($request);
-    // }
 }

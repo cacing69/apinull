@@ -4,9 +4,7 @@ namespace App\Http;
 
 use App\Core\LogManager;
 use App\Http\Middlewares\AuthMiddleware;
-use App\Http\Middlewares\InputSanitizationMiddleware;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\Request;
 use Symfony\Component\Yaml\Yaml;
 
 class Router
@@ -72,7 +70,6 @@ class Router
     /**
      * Mendapatkan dan mendispatch request sesuai rute yang terdaftar
      * @param Request $request
-    //  * @return Response
      */
     public function dispatch(Request $request)
     {
@@ -107,19 +104,11 @@ class Router
                     $middlewares = $route['middleware'] ?? [];
                     $response = $this->runMiddlewares($middlewares, $request, function ($request) use ($handler, $handlerMethod, $args) {
                         // Dapatkan hasil dari handler
-                        $result = call_user_func_array([$handler, $handlerMethod], $args);
-
-                        // Otomatis mengubah array atau object menjadi JSON
-                        if (is_array($result) || is_object($result)) {
-                            return response_json($result); // Gunakan helper untuk JSON dengan status 200
-                        }
-
-                        // Kembalikan hasil langsung jika bukan array/object
-                        return $result;
+                        return call_user_func_array([$handler, $handlerMethod], $args);
                     });
 
-
-                    return $response;
+                    // Pastikan respons yang dikembalikan di sini adalah objek Response dari Laravel
+                    return response()->json($response); // Mengubah hasil menjadi JSON di sini
                 }
             }
 
@@ -142,7 +131,6 @@ class Router
      * @param array $middlewares
      * @param Request $request
      * @param callable $next
-    //  * @return Response
      */
     private function runMiddlewares(array $middlewares, Request $request, callable $next)
     {
@@ -161,9 +149,14 @@ class Router
         //     );
         // }
 
+        // if (!class_exists($middlewareClass)) {
+        //     // Kembalikan error dalam bentuk array dan serahkan ke dispatcher untuk diolah menjadi JSON
+        //     return ['error' => "Middleware class '{$middlewareClass}' not found"];
+        // }
+
         if (!class_exists($middlewareClass)) {
-            // Kembalikan error dalam bentuk array dan serahkan ke dispatcher untuk diolah menjadi JSON
-            return ['error' => "Middleware class '{$middlewareClass}' not found"];
+            // Jika middleware tidak ditemukan, kirimkan error dengan JSON response
+            return response()->json(['error' => "Middleware class '{$middlewareClass}' not found"], 404);
         }
 
         $middleware = new $middlewareClass();
@@ -176,14 +169,10 @@ class Router
      * Membuat response error
      * @param string $message
      * @param int $statusCode
-    //  * @return Response
      */
     private function createErrorResponse(string $message, int $statusCode)
     {
-        return [
-            'error' => $message,
-            'status_code' => $statusCode
-        ];
+        return response()->json(['error' => $message], $statusCode);
     }
 
     /**

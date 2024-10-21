@@ -4,14 +4,15 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use App\Core\Database;
 use App\Http\Router;
-use App\Http\Middlewares\JsonResponseMiddleware;
-use Symfony\Component\HttpFoundation\Request;
+// use App\Http\Middlewares\JsonResponseMiddleware;
+use Illuminate\Http\Request;
+// use Symfony\Component\HttpFoundation\Request;
 
 // Inisialisasi database menggunakan Singleton
 Database::getInstance();
 
 // Membuat objek Request dari globals (data dari request HTTP saat ini)
-$request = Request::createFromGlobals();
+$request = Request::capture();
 
 // Inisialisasi router dan membaca rute dari file YAML
 $router = new Router(__DIR__ . '/config/routes.yaml');

@@ -3,9 +3,10 @@
 namespace Modules\User;
 
 use App\Core\BaseHandler;
+use Illuminate\Http\Request;
 use Modules\User\UserTable;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+// use Symfony\Component\HttpFoundation\Request;
+// use Symfony\Component\HttpFoundation\Response;
 
 class Handler extends BaseHandler
 {
@@ -19,7 +20,7 @@ class Handler extends BaseHandler
         // $logManager = new LogManager();
         // $this->logger = $logManager->getLogger();
     }
-    public function ping()
+    public function ping(Request $request)
     {
         // $this->logger->info('UserHandler: ping method called');
 
@@ -27,7 +28,8 @@ class Handler extends BaseHandler
             "ping" => "pong"
         ];
 
-        return response_json($data, 400);
+        // return $data;
+        return $data;
     }
     public function profile()
     {
@@ -45,11 +47,11 @@ class Handler extends BaseHandler
             // Validasi bahwa id harus integer
             if (!filter_var($id, FILTER_VALIDATE_INT)) {
                 // Mengembalikan respons dengan kode 400 dan pesan error
-                return new Response(
-                    json_encode(['error' => 'Invalid ID, must be an integer']),
-                    Response::HTTP_BAD_REQUEST,
-                    ['Content-Type' => 'application/json']
-                );
+                // return new Response(
+                //     json_encode(['error' => 'Invalid ID, must be an integer']),
+                //     Response::HTTP_BAD_REQUEST,
+                //     ['Content-Type' => 'application/json']
+                // );
             }
         }
         // dd($this->request);
