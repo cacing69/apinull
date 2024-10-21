@@ -5,6 +5,7 @@ namespace Modules\User;
 use App\Core\BaseHandler;
 use Modules\User\UserTable;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class Handler extends BaseHandler
 {
@@ -26,7 +27,7 @@ class Handler extends BaseHandler
             "ping" => "pong"
         ];
 
-        return $data;
+        return response_json($data, 400);
     }
     public function profile()
     {
@@ -41,9 +42,15 @@ class Handler extends BaseHandler
     {
         // Validasi bahwa id harus integer
         if (!filter_var($id, FILTER_VALIDATE_INT)) {
-            return [
-                'error' => 'Invalid ID, must be an integer',
-            ];
+            // Validasi bahwa id harus integer
+            if (!filter_var($id, FILTER_VALIDATE_INT)) {
+                // Mengembalikan respons dengan kode 400 dan pesan error
+                return new Response(
+                    json_encode(['error' => 'Invalid ID, must be an integer']),
+                    Response::HTTP_BAD_REQUEST,
+                    ['Content-Type' => 'application/json']
+                );
+            }
         }
         // dd($this->request);
         // $request = Request::createFromGlobals();

@@ -32,7 +32,8 @@ class JsonResponseMiddleware
         $content = $response->getContent();
 
         // Logging untuk melihat konten
-        $this->logger->info('JsonResponseMiddleware: Response content', [
+        $this->logger->info('JsonResponseMiddleware: Response status', [
+            'status' => $response->getStatusCode(),
             'content' => $content,
         ]);
 

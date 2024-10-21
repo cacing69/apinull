@@ -18,9 +18,9 @@ class Router
         "auth" => AuthMiddleware::class
     ];
     private $globalMiddleware = [
-        \App\Http\Middlewares\CorsMiddleware::class,
-        \App\Http\Middlewares\FixHeadersMiddleware::class,
-        InputSanitizationMiddleware::class // Middleware sanitasi input
+        // \App\Http\Middlewares\CorsMiddleware::class,
+        // \App\Http\Middlewares\FixHeadersMiddleware::class,
+        // InputSanitizationMiddleware::class // Middleware sanitasi input
     ];
 
     /**
@@ -72,9 +72,9 @@ class Router
     /**
      * Mendapatkan dan mendispatch request sesuai rute yang terdaftar
      * @param Request $request
-     * @return Response
+    //  * @return Response
      */
-    public function dispatch(Request $request): Response
+    public function dispatch(Request $request)
     {
         $requestId = uniqid('request_', true);
         $path = $request->getPathInfo();
@@ -106,14 +106,20 @@ class Router
                     // Eksekusi middleware dan handler
                     $middlewares = $route['middleware'] ?? [];
                     $response = $this->runMiddlewares($middlewares, $request, function ($request) use ($handler, $handlerMethod, $args) {
-                        return new Response(
-                            json_encode(call_user_func_array([$handler, $handlerMethod], $args)),
-                            200,
-                            ['Content-Type' => 'application/json']
-                        );
+                        // Dapatkan hasil dari handler
+                        $result = call_user_func_array([$handler, $handlerMethod], $args);
+
+                        // Otomatis mengubah array atau object menjadi JSON
+                        if (is_array($result) || is_object($result)) {
+                            return response_json($result); // Gunakan helper untuk JSON dengan status 200
+                        }
+
+                        // Kembalikan hasil langsung jika bukan array/object
+                        return $result;
                     });
 
-                    return $response instanceof Response ? $response : $this->createErrorResponse("unexpected response type", 500);
+
+                    return $response;
                 }
             }
 
@@ -136,9 +142,9 @@ class Router
      * @param array $middlewares
      * @param Request $request
      * @param callable $next
-     * @return Response
+    //  * @return Response
      */
-    private function runMiddlewares(array $middlewares, Request $request, callable $next): Response
+    private function runMiddlewares(array $middlewares, Request $request, callable $next)
     {
         if (empty($middlewares)) {
             return $next($request);
@@ -147,12 +153,17 @@ class Router
         $middlewareName = array_shift($middlewares);
         $middlewareClass = $this->mapMiddleware[$middlewareName] ?? "App\\Http\\Middlewares\\{$middlewareName}";
 
+        // if (!class_exists($middlewareClass)) {
+        //     return new Response(
+        //         json_encode(['error' => "Middleware class '{$middlewareClass}' not found"]),
+        //         404,
+        //         ['Content-Type' => 'application/json']
+        //     );
+        // }
+
         if (!class_exists($middlewareClass)) {
-            return new Response(
-                json_encode(['error' => "Middleware class '{$middlewareClass}' not found"]),
-                404,
-                ['Content-Type' => 'application/json']
-            );
+            // Kembalikan error dalam bentuk array dan serahkan ke dispatcher untuk diolah menjadi JSON
+            return ['error' => "Middleware class '{$middlewareClass}' not found"];
         }
 
         $middleware = new $middlewareClass();
@@ -165,15 +176,14 @@ class Router
      * Membuat response error
      * @param string $message
      * @param int $statusCode
-     * @return Response
+    //  * @return Response
      */
-    private function createErrorResponse(string $message, int $statusCode): Response
+    private function createErrorResponse(string $message, int $statusCode)
     {
-        return new Response(
-            json_encode(['error' => $message]),
-            $statusCode,
-            ['Content-Type' => 'application/json']
-        );
+        return [
+            'error' => $message,
+            'status_code' => $statusCode
+        ];
     }
 
     /**
