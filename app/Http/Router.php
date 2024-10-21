@@ -16,9 +16,9 @@ class Router
         "auth" => AuthMiddleware::class
     ];
     private $globalMiddleware = [
-        // \App\Http\Middlewares\CorsMiddleware::class,
-        // \App\Http\Middlewares\FixHeadersMiddleware::class,
-        // InputSanitizationMiddleware::class // Middleware sanitasi input
+        \App\Http\Middlewares\CorsMiddleware::class,
+        \App\Http\Middlewares\FixHeadersMiddleware::class,
+        InputSanitizationMiddleware::class // Middleware sanitasi input
     ];
 
     /**

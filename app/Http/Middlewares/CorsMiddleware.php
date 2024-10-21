@@ -1,12 +1,11 @@
 <?php
 namespace App\Http\Middlewares;
+use Illuminate\Http\Request;
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 class CorsMiddleware
 {
-    public function handle(Request $request, callable $next): Response
+    public function handle(Request $request, callable $next)
     {
         // Menambahkan header CORS
         header("Access-Control-Allow-Origin: *");
@@ -15,7 +14,7 @@ class CorsMiddleware
 
         // Untuk menangani preflight request
         if ($request->getMethod() === 'OPTIONS') {
-            return new Response('', 204);
+            return response()->json([], 204);
         }
 
         return $next($request);

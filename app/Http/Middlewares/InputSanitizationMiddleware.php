@@ -1,13 +1,11 @@
 <?php
 namespace App\Http\Middlewares;
-
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\Request;
 
 class InputSanitizationMiddleware {
-    public function handle(Request $request, callable $next): Response {
+    public function handle(Request $request, callable $next){
         // Sanitasi input
-        $request->request->replace(array_map('htmlspecialchars', $request->request->all()));
+        // $request->request->replace(array_map('htmlspecialchars', $request->request->all()));
 
         return $next($request);
     }

@@ -1,12 +1,10 @@
 <?php
 namespace App\Http\Middlewares;
-
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\Request;
 
 class FixHeadersMiddleware
 {
-    public function handle(Request $request, callable $next): Response
+    public function handle(Request $request, callable $next)
     {
         // Menambahkan header keamanan
         header("X-Content-Type-Options: nosniff");
