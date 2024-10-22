@@ -158,4 +158,24 @@ class BaseHandler
             return response()->json(["data" => $validator->errors()->all()], 403);
         }
     }
+
+    protected function convertYamlToLaravelRules(array $rules)
+    {
+        $laravelRules = [];
+        foreach ($rules as $field => $fieldRules) {
+            $laravelRules[$field] = [];
+
+            foreach ($fieldRules as $rule => $value) {
+                if ($value === true) {
+                    $laravelRules[$field][] = $rule;
+                } elseif (is_numeric($value)) {
+                    $laravelRules[$field][] = $rule . ':' . $value;
+                }
+            }
+
+            $laravelRules[$field] = implode('|', $laravelRules[$field]);
+        }
+
+        return $laravelRules;
+    }
 }

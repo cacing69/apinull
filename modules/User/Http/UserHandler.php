@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\Validator;
 use Modules\User\UserTable;
 use Illuminate\Validation\Factory as ValidatorFactory;
+use Symfony\Component\Yaml\Yaml;
 // use Symfony\Component\HttpFoundation\Request;
 // use Symfony\Component\HttpFoundation\Response;
 
@@ -85,13 +86,19 @@ class UserHandler extends BaseHandler
         // $validatorFactory = new ValidatorFactory();
 
         // Definisikan aturan validasi
-        $rules = [
-            'username' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-        ];
+        // $rules = [
+        //     'username' => 'required|string|max:255',
+        //     'email' => 'required|email|max:255|unique:users,email',
+        //     'password' => 'required|string|min:8|confirmed',
+        // ];
 
-        // Lakukan validasi
+        // dd(__DIR__);
+
+        $rulesYaml = Yaml::parseFile(__DIR__."/Validate/user.create.yaml") ?? [];
+
+        $rules = $this->convertYamlToLaravelRules($rulesYaml);
+        // $rules['email'] = str_replace(':id', $userId, $rules['email']); // Ganti :id dengan userId saat ini
+
         // Lakukan validasi
         // $validator = Validator::make($request->all(), $rules);
 

@@ -1,0 +1,11 @@
+username:
+  required: true
+  min: 5
+  max: 20
+email:
+  required: true
+  email: true
+  unique: users,email,:id
+password:
+  required: true
+  min: 8
