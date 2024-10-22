@@ -7,7 +7,6 @@ use App\Kernel\Database;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\Validator;
-use Modules\User\UserTable;
 use Illuminate\Validation\Factory as ValidatorFactory;
 use Symfony\Component\Yaml\Yaml;
 // use Symfony\Component\HttpFoundation\Request;

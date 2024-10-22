@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\User;
+namespace Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserTable extends Model
+class User extends Model
 {
     protected $table = 'users';
     protected $fillable = ['username', 'email', 'password'];
