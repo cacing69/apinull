@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Middlewares;
-use App\Core\LogManager;
+use App\Kernel\LogManager;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 

@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Core;
-use App\Core\LogManager;
+namespace App\Kernel;
+use App\Kernel\LogManager;
 use Symfony\Component\HttpFoundation\Response;
 
 class ExceptionHandler

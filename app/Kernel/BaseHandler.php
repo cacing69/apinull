@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Core;
-use App\Core\ServiceContainer;
+namespace App\Kernel;
+use App\Kernel\ServiceContainer;
 
 class BaseHandler
 {

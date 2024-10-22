@@ -2,8 +2,10 @@
 
 namespace Modules\User\Http;
 
-use App\Core\BaseHandler;
+use App\Kernel\BaseHandler;
+use App\Kernel\Database;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\User\UserTable;
 // use Symfony\Component\HttpFoundation\Request;
 // use Symfony\Component\HttpFoundation\Response;
@@ -23,9 +25,10 @@ class UserHandler extends BaseHandler
     public function ping(Request $request)
     {
         // $this->logger->info('UserHandler: ping method called');
-
+        $db = Database::table("users")->get()->pluck("email");
         $data = [
-            "ping" => "pong"
+            "ping" => "pong",
+            "user" => $db
         ];
 
         // return $data;

@@ -2,7 +2,7 @@
 
 namespace App\Http;
 
-use App\Core\LogManager;
+use App\Kernel\LogManager;
 use App\Http\Middlewares\AuthMiddleware;
 use Illuminate\Http\Request;
 use Symfony\Component\Yaml\Yaml;
@@ -121,7 +121,7 @@ class Router
             ]);
 
             // Menangani exception dan mengembalikan response yang sesuai
-            $exceptionHandler = new \App\Core\ExceptionHandler();
+            $exceptionHandler = new \App\Kernel\ExceptionHandler();
             return $exceptionHandler->handle($exception);
         }
     }
