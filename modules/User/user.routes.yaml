@@ -13,7 +13,10 @@ routes:
     handler: Modules\User\Http\UserHandler::check
     methods: [GET]
 
-
   - path: /check-db
     handler: Modules\User\Http\UserHandler::checkDb
+    methods: [GET]
+
+  - path: /validate
+    handler: Modules\User\Http\UserHandler::formValidate
     methods: [GET]

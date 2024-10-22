@@ -2,11 +2,13 @@
 
 namespace Modules\User\Http;
 
-use App\Kernel\BaseHandler;
+use App\Http\BaseHandler;
 use App\Kernel\Database;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+// use Illuminate\Support\Facades\Validator;
 use Modules\User\UserTable;
+use Illuminate\Validation\Factory as ValidatorFactory;
 // use Symfony\Component\HttpFoundation\Request;
 // use Symfony\Component\HttpFoundation\Response;
 
@@ -75,5 +77,34 @@ class UserHandler extends BaseHandler
         $user = UserTable::all();
 
         return $user;
+    }
+
+    public function formValidate(Request $request)
+    {
+        // Inisialisasi ValidatorFactory
+        // $validatorFactory = new ValidatorFactory();
+
+        // Definisikan aturan validasi
+        $rules = [
+            'username' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ];
+
+        // Lakukan validasi
+        // Lakukan validasi
+        // $validator = Validator::make($request->all(), $rules);
+
+        // Cek jika ada kesalahan
+        $this->validate($request->all(), $rules);
+        // if (
+        //     {
+        // //     return response()->json([
+        // //         'errors' => $validator->errors(),
+        // //     ], 400);
+        // }
+
+        // Jika validasi berhasil, lanjutkan dengan logika penyimpanan data
+        // ...
     }
 }
