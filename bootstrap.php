@@ -15,7 +15,7 @@ Database::getInstance();
 $request = Request::capture();
 
 // Inisialisasi router dan membaca rute dari file YAML
-$router = new Router(__DIR__ . '/config/routes.yaml');
+$router = new Router(__DIR__ . '/routes.yaml');
 
 // Mendistribusikan request dan mendapatkan respons yang sesuai dari handler
 $response = $router->dispatch($request);

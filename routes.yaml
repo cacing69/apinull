@@ -1,0 +1,3 @@
+imports:
+  - { resource: ../src/Modules/User/user.routes.yaml }
+  - { resource: ../src/Modules/Test/test.routes.yaml }

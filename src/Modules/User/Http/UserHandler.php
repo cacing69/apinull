@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Factory as ValidatorFactory;
+use Models\User;
 use Symfony\Component\Yaml\Yaml;
 // use Symfony\Component\HttpFoundation\Request;
 // use Symfony\Component\HttpFoundation\Response;
@@ -74,7 +75,7 @@ class UserHandler extends BaseHandler
 
     public function checkDb()
     {
-        $user = UserTable::all();
+        $user = User::all();
 
         return $user;
     }
