@@ -5,8 +5,17 @@ require_once __DIR__ . '/vendor/autoload.php';
 use App\Kernel\Database;
 use App\Http\Router;
 // use App\Http\Middlewares\JsonResponseMiddleware;
+use Dotenv\Dotenv;
 use Illuminate\Http\Request;
 // use Symfony\Component\HttpFoundation\Request;
+
+// Inisialisasi dotenv
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+// Baca variabel dari .env
+// $this->rateLimit = getenv('RATE_LIMIT') ?: 100;
+// $this->timeWindow = getenv('TIME_WINDOW') ?: 3600;
 
 // Inisialisasi database menggunakan Singleton
 Database::getInstance();
