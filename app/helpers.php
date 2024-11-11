@@ -1,6 +1,12 @@
 <?php
 use Symfony\Component\VarDumper\VarDumper;
 
+if (!function_exists('app_path')) {
+    function app_path($path = "")
+    {
+        return APINULL_PATH . $path;
+    }
+}
 
 if (!function_exists('dd')) {
     function dd(...$vars)

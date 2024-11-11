@@ -2,12 +2,14 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use App\Kernel\Database;
+use App\Kernel\DB;
 use App\Http\Router;
 // use App\Http\Middlewares\JsonResponseMiddleware;
 use Dotenv\Dotenv;
 use Illuminate\Http\Request;
 // use Symfony\Component\HttpFoundation\Request;
+
+define("APINULL_PATH", __DIR__);
 
 // Inisialisasi dotenv
 $dotenv = Dotenv::createImmutable(__DIR__);
@@ -18,7 +20,7 @@ $dotenv->load();
 // $this->timeWindow = getenv('TIME_WINDOW') ?: 3600;
 
 // Inisialisasi database menggunakan Singleton
-Database::getInstance();
+DB::getInstance();
 
 // Membuat objek Request dari globals (data dari request HTTP saat ini)
 $request = Request::capture();

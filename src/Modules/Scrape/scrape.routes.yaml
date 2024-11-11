@@ -1,0 +1,5 @@
+module: Scrape
+routes:
+  - path: /scrape/ig/post
+    handler: Modules\Scrape\Http\ScrapeHandler::igPost
+    methods: [GET]

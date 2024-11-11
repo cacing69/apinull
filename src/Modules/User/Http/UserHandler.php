@@ -3,9 +3,8 @@
 namespace Modules\User\Http;
 
 use App\Http\BaseHandler;
-use App\Kernel\Database;
+use App\Kernel\DB;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 // use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Factory as ValidatorFactory;
 use Models\User;
@@ -28,11 +27,13 @@ class UserHandler extends BaseHandler
     public function ping(Request $request)
     {
         // $this->logger->info('UserHandler: ping method called');
-        $db = Database::table("users")->get()->pluck("email");
+        $db = DB::table("users")->get()->pluck("email");
         $data = [
             "ping" => "pong",
             "user" => $db
         ];
+
+        dd($data);
 
         // return $data;
         return $data;

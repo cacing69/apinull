@@ -7,9 +7,12 @@ class FixHeadersMiddleware
     public function handle(Request $request, callable $next)
     {
         // Menambahkan header keamanan
-        header("X-Content-Type-Options: nosniff");
-        header("X-Frame-Options: DENY");
-        header("Content-Security-Policy: default-src 'self'");
+
+        if(in_array(strtolower(getenv("APP_ENV")), ["prod", "production"])) {
+            header("X-Content-Type-Options: nosniff");
+            header("X-Frame-Options: DENY");
+            header("Content-Security-Policy: default-src 'self'");
+        }
 
         return $next($request);
     }

@@ -11,7 +11,7 @@ use Illuminate\Validation\Factory as ValidatorFactory;
 class BaseHandler
 {
     protected $validator;
-    // protected $logger;
+    protected $logger;
     // protected $request;
 
     // public function __construct(ServiceContainer $container)

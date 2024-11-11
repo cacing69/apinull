@@ -1,5 +1,5 @@
 module: Test
 routes:
-  - path: /test
+  - path: /
     handler: Modules\Test\Http\TestHandler::test
     methods: [GET]

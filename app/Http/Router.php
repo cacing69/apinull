@@ -16,7 +16,7 @@ class Router
         "auth" => AuthMiddleware::class
     ];
     private $globalMiddleware = [
-        \App\Http\Middlewares\CorsMiddleware::class,
+        \pp\Http\Middlewares\CorsMiddleware::class,
         \App\Http\Middlewares\FixHeadersMiddleware::class,
         InputSanitizationMiddleware::class // Middleware sanitasi input
     ];
@@ -100,6 +100,8 @@ class Router
 
                     $args = $this->resolveMethodArgs($methodParams, $params, $request);
 
+
+
                     // Eksekusi middleware dan handler
                     $middlewares = $route['middleware'] ?? [];
                     $response = $this->runMiddlewares($middlewares, $request, function ($request) use ($handler, $handlerMethod, $args) {
@@ -138,21 +140,10 @@ class Router
             return $next($request);
         }
 
+        // dd($this);
+
         $middlewareName = array_shift($middlewares);
         $middlewareClass = $this->mapMiddleware[$middlewareName] ?? "App\\Http\\Middlewares\\{$middlewareName}";
-
-        // if (!class_exists($middlewareClass)) {
-        //     return new Response(
-        //         json_encode(['error' => "Middleware class '{$middlewareClass}' not found"]),
-        //         404,
-        //         ['Content-Type' => 'application/json']
-        //     );
-        // }
-
-        // if (!class_exists($middlewareClass)) {
-        //     // Kembalikan error dalam bentuk array dan serahkan ke dispatcher untuk diolah menjadi JSON
-        //     return ['error' => "Middleware class '{$middlewareClass}' not found"];
-        // }
 
         if (!class_exists($middlewareClass)) {
             // Jika middleware tidak ditemukan, kirimkan error dengan JSON response
@@ -160,6 +151,7 @@ class Router
         }
 
         $middleware = new $middlewareClass();
+
         return $middleware->handle($request, function ($request) use ($middlewares, $next) {
             return $this->runMiddlewares($middlewares, $request, $next);
         });

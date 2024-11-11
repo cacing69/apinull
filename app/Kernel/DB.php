@@ -4,7 +4,7 @@ namespace App\Kernel;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-class Database
+class DB
 {
     private static $capsule;
 
