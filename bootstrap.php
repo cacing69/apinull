@@ -11,9 +11,11 @@ use Illuminate\Http\Request;
 
 define("APINULL_PATH", __DIR__);
 
-// Inisialisasi dotenv
-// $dotenv = Dotenv::createImmutable(__DIR__);
-// $dotenv->load();
+if(getenv("APP_LOAD_ENV")) {
+    // Inisialisasi dotenv
+    $dotenv = Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
 
 // Baca variabel dari .env
 // $this->rateLimit = getenv('RATE_LIMIT') ?: 100;
