@@ -1,6 +1,7 @@
 <?php
-
 namespace Modules\Scrape\Http;
+
+set_time_limit(600);
 
 use App\Http\BaseHandler;
 use Illuminate\Http\Request;
@@ -144,6 +145,12 @@ class ScrapeHandler extends BaseHandler
         curl_close($ch);
 
         // handling not found
+
+        if(true) {
+            return [
+                "data" => 1
+            ];
+        }
 
         if(preg_match('/Page Not Found/', $response)) {
             return response()->json([
