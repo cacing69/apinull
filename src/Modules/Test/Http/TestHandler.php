@@ -9,6 +9,8 @@ class TestHandler extends BaseHandler
 {
     public function test(Request $request)
     {
+        phpinfo();
+        die();
 
         $data = [
             "ping" => "pong",
