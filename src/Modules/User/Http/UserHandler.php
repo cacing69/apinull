@@ -1,12 +1,11 @@
 <?php
-
 namespace Modules\User\Http;
 
 use App\Http\BaseHandler;
 use App\Kernel\DB;
 use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Factory as ValidatorFactory;
+// use Illuminate\Validation\Factory as ValidatorFactory;
 use Models\User;
 use Symfony\Component\Yaml\Yaml;
 // use Symfony\Component\HttpFoundation\Request;
@@ -33,7 +32,7 @@ class UserHandler extends BaseHandler
             "env" => [
                 getenv("APP_TEST"),
                 $_ENV["APP_TEST"],
-                $_SERVER["APP_TEST"],
+                // $_SERVER["APP_TEST"],
             ],
             "data" => $db
             // "user" => $db
