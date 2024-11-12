@@ -1,8 +1,6 @@
 <?php
 namespace Modules\Scrape\Http;
 
-set_time_limit(600);
-
 use App\Http\BaseHandler;
 use Illuminate\Http\Request;
 use ImageKit\ImageKit;
