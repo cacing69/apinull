@@ -146,11 +146,11 @@ class ScrapeHandler extends BaseHandler
 
         // handling not found
 
-        if(true) {
-            return [
-                "data" => 1
-            ];
-        }
+        // if(true) {
+        //     return [
+        //         "data" => 1
+        //     ];
+        // }
 
         if(preg_match('/Page Not Found/', $response)) {
             return response()->json([
