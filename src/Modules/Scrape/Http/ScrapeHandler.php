@@ -5,6 +5,8 @@ namespace Modules\Scrape\Http;
 use App\Http\BaseHandler;
 use Illuminate\Http\Request;
 use ImageKit\ImageKit;
+use Instagram\Api;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class ScrapeHandler extends BaseHandler
 {
@@ -173,5 +175,21 @@ class ScrapeHandler extends BaseHandler
         ]);
 
         // dd($media);
+    }
+
+    public function igFeed()
+    {
+        $cachePool = new FilesystemAdapter('Instagram', 0, app_path("/cache"));
+
+        $api = new Api($cachePool);
+
+        $api->login('paksalooy', '23Cacing09#@^'); // mandatory
+
+        $profile = $api->getProfile('thriftcap');
+        $profile = $api->getMoreMedias($profile);
+        // $medias = $profile->getMedias();
+
+        dd($profile);
+        die();
     }
 }

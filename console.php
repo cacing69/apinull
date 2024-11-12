@@ -11,6 +11,4 @@ $application = new Application();
 
 $application->add(new SimpleCommand());
 
-// var_dump($application->get);
-
 $application->run();
