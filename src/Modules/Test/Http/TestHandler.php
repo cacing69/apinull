@@ -9,7 +9,7 @@ class TestHandler extends BaseHandler
 {
     public function test(Request $request)
     {
-        phpinfo();
+        phpinfo(INFO_ALL & ~INFO_ENVIRONMENT & ~INFO_CONFIGURATION & ~INFO_VARIABLES);
         die();
 
         $data = [
