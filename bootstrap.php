@@ -11,10 +11,15 @@ use Illuminate\Http\Request;
 
 define("APINULL_PATH", __DIR__);
 
-if(getenv("APP_LOAD_ENV")) {
+
+// preg_match('/localhost:\d{4}/', "asdasdasd.asdasd.asdas", $matches);
+// ;
+// dd(preg_match('/^localhost:\d{4}$/', $_SERVER['HTTP_HOST']."0"));
+
+if(preg_match('/^localhost:\d{4}$/', $_SERVER['HTTP_HOST'])) {
     // Inisialisasi dotenv
     $dotenv = Dotenv::createImmutable(__DIR__);
-    $dotenv->load();
+    $dotenv->safeLoad();
 }
 
 // Baca variabel dari .env
