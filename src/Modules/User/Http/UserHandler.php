@@ -27,13 +27,13 @@ class UserHandler extends BaseHandler
     public function ping(Request $request)
     {
         // $this->logger->info('UserHandler: ping method called');
-        $db = DB::table("users")->get()->pluck("email");
+        // $db = DB::table("users")->get()->pluck("email");
         $data = [
             "ping" => "pong",
-            "user" => $db
+            // "user" => $db
         ];
 
-        dd($data);
+        // dd($data);
 
         // return $data;
         return $data;
