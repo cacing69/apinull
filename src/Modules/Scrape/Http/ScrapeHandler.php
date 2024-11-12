@@ -98,7 +98,7 @@ class ScrapeHandler extends BaseHandler
     public function igPost(Request $request)
     {
         // dd($request->has("content"));
-        preg_match_all('/\[(.*?)\]/', 'GET /articles?include=author&fields[articles]=title,body&fields[people]=name HTTP/1.1', $bracket);
+        // preg_match_all('/\[(.*?)\]/', 'GET /articles?include=author&fields[articles]=title,body&fields[people]=name HTTP/1.1', $bracket);
         // dd($bracket);
 
         // if(!$request->has("content")) {
@@ -121,7 +121,7 @@ class ScrapeHandler extends BaseHandler
 
         // instagram.com\/(?:[A-Za-z0-9_.]+\/)?(p|reels|reel|stories)\/([A-Za-z0-9-_]+) // patern get id
 
-        $url = "https://www.instagram.com/thriftcap/p/C94DSpBvR8w/?__a=1&__d=dis";  // The target URL
+        $url = "https://www.instagram.com/thriftcap/p/DCQfqRpB1-1/?__a=1&__d=dis";  // The target URL
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -143,13 +143,26 @@ class ScrapeHandler extends BaseHandler
         $response = curl_exec($ch);
         curl_close($ch);
 
+        // handling not found
+
+        if(preg_match('/Page Not Found/', $response)) {
+            return response()->json([
+                "data" => null,
+                "meta" => null,
+                "error" => [
+                    "message" => "post not found",
+                    "stacks" => []
+                ]
+            ], 400);
+        }
+
         $decodeResponse = json_decode($response, JSON_OBJECT_AS_ARRAY);
 
         $media = [];
 
         preg_match('/^https\:\/\/.*\/p\/(.*?)\/\?__a=1&__d=dis$/', $url, $extractPostId);
 
-        foreach ($decodeResponse["items"][0]["carousel_media"] as $carouselMedia) {
+        foreach ($decodeResponse["items"][0]["carousel_media"] as $k => $carouselMedia) {
             preg_match('/^https\:\/\/.*\/(.*?)\?stp=.*$/', $carouselMedia["image_versions2"]["candidates"][0]["url"], $extractFileName);
 
             $uploadFile = $imageKit->uploadFile([
@@ -162,6 +175,7 @@ class ScrapeHandler extends BaseHandler
                 "folder"        => "/".end($extractPostId),
             ]);
             $media[] = [
+                "index"     => $k + 1,
                 "fileId"    => $uploadFile?->result?->fileId,
                 "fileUrl"   => $uploadFile?->result?->url,
                 "name"      => $uploadFile?->result?->name,
@@ -186,8 +200,6 @@ class ScrapeHandler extends BaseHandler
         $api->login('paksalooy', '23Cacing09#@^'); // mandatory
 
         $profile = $api->getProfile('thriftcap');
-        $profile = $api->getMoreMedias($profile);
-        // $medias = $profile->getMedias();
 
         dd($profile);
         die();
