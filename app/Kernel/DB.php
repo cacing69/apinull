@@ -14,11 +14,12 @@ class DB
             self::$capsule = new Capsule();
 
             self::$capsule->addConnection([
-                    'driver' => 'mysql', // Atau 'sqlite', 'pgsql', dll.
-                    'host' => '127.0.0.1',
-                    'database' => 'db_apinull',
-                    'username' => 'root',
-                    'password' => 'cacing.mysql',
+                    'driver' => 'pgsql', // Atau 'sqlite', 'pgsql', 'mysql'.
+                    'host' => 'us-east-1.sql.xata.sh',
+                    'database' => 'apinull',
+                    'username' => '3aadso',
+                    // 'password' => 'cacing.mysql',
+                    'password' => 'xau_bMQYUHFhI4vmowi9q88GRdpjkFJuJ2fB1',
                     'charset' => 'utf8',
                     'collation' => 'utf8_unicode_ci',
                     'prefix' => '',
