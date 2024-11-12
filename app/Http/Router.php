@@ -36,7 +36,7 @@ class Router
         // Muat rute tambahan yang diimpor dari file lain
         if (isset($this->routes['imports'])) {
             foreach ($this->routes['imports'] as $import) {
-                $importedRoutes = Yaml::parseFile($import['resource']);
+                $importedRoutes = Yaml::parseFile(app_path("/".$import['resource']));
                 $this->allRoutes = array_merge($this->allRoutes, $importedRoutes['routes']);
             }
         }
