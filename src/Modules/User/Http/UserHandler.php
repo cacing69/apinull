@@ -30,6 +30,9 @@ class UserHandler extends BaseHandler
         // $db = DB::table("users")->get()->pluck("email");
         $data = [
             "ping" => "pong",
+            "env" => [
+                getenv("APP_TEST")
+            ]
             // "user" => $db
         ];
 
