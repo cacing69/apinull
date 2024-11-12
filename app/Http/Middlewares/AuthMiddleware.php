@@ -23,18 +23,18 @@ class AuthMiddleware
         $authHeader = 'Bearer xyz.abc';
 
         if (!$authHeader) {
-            $this->logger->warning('Bearer token not provided', [
-                'uri' => $request->getPathInfo(),
-            ]);
+            // $this->logger->warning('Bearer token not provided', [
+            //     'uri' => $request->getPathInfo(),
+            // ]);
         }
 
         // Lakukan otentikasi atau cek sesi pengguna
         $isAuthenticated = true; // Ganti dengan logika autentikasi yang sesuai
 
         if (!$isAuthenticated) {
-            $this->logger->warning('Unauthorized access attempt', [
-                'uri' => $request->getPathInfo(),
-            ]);
+            // $this->logger->warning('Unauthorized access attempt', [
+            //     'uri' => $request->getPathInfo(),
+            // ]);
             return new Response(
                 json_encode(['error' => 'unauthorized']),
                 401,

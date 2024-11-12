@@ -78,11 +78,11 @@ class Router
         $method = $request->getMethod();
 
         // Logging request yang diterima
-        $this->logger->info('Dispatching request', [
-            'requestId' => $requestId,
-            'uri' => $path,
-            'method' => $method,
-        ]);
+        // $this->logger->info('Dispatching request', [
+        //     'requestId' => $requestId,
+        //     'uri' => $path,
+        //     'method' => $method,
+        // ]);
 
         try {
             foreach ($this->allRoutes as $route) {
@@ -117,10 +117,10 @@ class Router
             return $this->createErrorResponse('route not found', 404);
         } catch (\Throwable $exception) {
             // Logging kesalahan yang terjadi
-            $this->logger->error('An error occurred', [
-                'message' => $exception->getMessage(),
-                'stack' => $exception->getTraceAsString(),
-            ]);
+            // $this->logger->error('An error occurred', [
+            //     'message' => $exception->getMessage(),
+            //     'stack' => $exception->getTraceAsString(),
+            // ]);
 
             // Menangani exception dan mengembalikan response yang sesuai
             $exceptionHandler = new \App\Kernel\ExceptionHandler();

@@ -15,7 +15,7 @@ class LogManager
         $this->logger = new Logger('api_logger');
 
         // Menambahkan handler untuk mencatat ke file
-        $this->logger->pushHandler(new StreamHandler(__DIR__ . '/../../logs/api-'.date('Ymd').'.log', Logger::DEBUG));
+        // $this->logger->pushHandler(new StreamHandler(app_path('/logs/api-'.date('Ymd').'.log'), Logger::DEBUG));
     }
 
     public function getLogger(): Logger

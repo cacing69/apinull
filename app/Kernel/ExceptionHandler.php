@@ -36,10 +36,10 @@ class ExceptionHandler
         header('Content-Type: application/json');
 
          // Catat kesalahan yang terjadi
-        $this->logger->error('Exception caught', [
-            'message' => $exception->getMessage(),
-            'stack' => $exception->getTraceAsString(),
-        ]);
+        // $this->logger->error('Exception caught', [
+        //     'message' => $exception->getMessage(),
+        //     'stack' => $exception->getTraceAsString(),
+        // ]);
 
         // Mengembalikan respons dalam bentuk array
         // Mengembalikan respons dalam bentuk JSON
