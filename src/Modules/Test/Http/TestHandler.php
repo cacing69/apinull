@@ -16,4 +16,14 @@ class TestHandler extends BaseHandler
 
         return $data;
     }
+
+    public function error(Request $request)
+    {
+        $data = [
+            "ping" => "pong",
+            // "user" => $db
+        ];
+
+        return response()->json($data, 400);
+    }
 }
