@@ -38,11 +38,6 @@ class DB
         return Capsule::table($table);
     }
 
-    public static function getAllUsers()
-    {
-        return self::table('users')->get();
-    }
-
     public static function insert($table, array $data)
     {
         return self::table($table)->insert($data);
