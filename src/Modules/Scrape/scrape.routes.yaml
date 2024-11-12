@@ -3,3 +3,6 @@ routes:
   - path: /scrape/ig/post
     handler: Modules\Scrape\Http\ScrapeHandler::igPost
     methods: [GET]
+  - path: /scrape/ig/profile
+    handler: Modules\Scrape\Http\ScrapeHandler::igProfile
+    methods: [GET]
