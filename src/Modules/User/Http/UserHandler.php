@@ -32,7 +32,8 @@ class UserHandler extends BaseHandler
             "ping" => "pong",
             "env" => [
                 getenv("APP_TEST"),
-                $_ENV["APP_TEST"]
+                $_ENV["APP_TEST"],
+                $_SERVER["APP_TEST"],
             ],
             "data" => $db
             // "user" => $db
