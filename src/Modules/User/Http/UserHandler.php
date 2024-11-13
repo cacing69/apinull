@@ -2,7 +2,8 @@
 namespace Modules\User\Http;
 
 use App\Http\BaseHandler;
-use App\Kernel\DB;
+// use App\Kernel\DB;
+use Illuminate\Database\Capsule\Manager as DB;
 use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Validator;
 // use Illuminate\Validation\Factory as ValidatorFactory;
@@ -30,7 +31,7 @@ class UserHandler extends BaseHandler
         $data = [
             "ping" => "pong",
             "env" => [
-                getenv("APP_TEST"),
+                // getenv("APP_TEST"),
                 $_ENV["APP_TEST"],
                 // $_SERVER["APP_TEST"],
             ],

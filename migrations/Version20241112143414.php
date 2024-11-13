@@ -21,7 +21,7 @@ final class Version20241112143414 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
         // $this->addSql('CREATE TABLE posts (id SERIAL PRIMARY KEY, media_url VARCHAR(255) NOT NULL)');
-        $table = $schema->createTable("posts");
+        $table = $schema->createTable("instagram.posts");
 
         $table->addColumn('id', 'bigint', ['autoincrement' => true]); // bigInt untuk ID
         $table->addColumn("media_url", "string");
@@ -32,7 +32,7 @@ final class Version20241112143414 extends AbstractMigration
         $table->addColumn("design", "string", ['notnull' => false]);
         $table->addColumn("hash", "string", ['notnull' => false]);
         $table->addColumn('is_sold', 'boolean', ['default' => false]);
-        $table->addColumn('price', 'int', ['notnull' => false, 'default' => null]);
+        $table->addColumn('price', 'integer', ['notnull' => false, 'default' => null]);
         $table->addColumn('created_by', 'bigint', ['notnull' => false]);
         $table->addColumn('updated_by', 'bigint', ['notnull' => false]);
         $table->addColumn('deleted_by', 'bigint', ['notnull' => false]);
@@ -48,6 +48,6 @@ final class Version20241112143414 extends AbstractMigration
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('DROP TABLE posts');
+        $this->addSql('DROP TABLE instagram.posts');
     }
 }

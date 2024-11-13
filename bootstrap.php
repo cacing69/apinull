@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use App\Kernel\DB;
+use App\Kernel\InitDB;
 use App\Http\Router;
 // use App\Http\Middlewares\JsonResponseMiddleware;
 use Dotenv\Dotenv;
@@ -27,7 +27,7 @@ if(preg_match('/^localhost:\d{4}$/', $_SERVER['HTTP_HOST'])) {
 // $this->timeWindow = getenv('TIME_WINDOW') ?: 3600;
 
 // Inisialisasi database menggunakan Singleton
-DB::getInstance();
+InitDB::getInstance();
 
 // Membuat objek Request dari globals (data dari request HTTP saat ini)
 $request = Request::capture();

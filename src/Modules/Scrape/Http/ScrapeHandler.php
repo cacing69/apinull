@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use ImageKit\ImageKit;
 use Instagram\Api;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Illuminate\Database\Capsule\Manager as DB;
 
 class ScrapeHandler extends BaseHandler
 {
@@ -115,100 +116,124 @@ class ScrapeHandler extends BaseHandler
         // preg_match_all('/\[(.*?)\]/', 'GET /articles?include=author&fields[articles]=title,body&fields[people]=name HTTP/1.1', $bracket);
         // dd($bracket);
 
-        // if(!$request->has("content")) {
-        //     return response()->json([
-        //         "data" => [],
-        //         "meta" => [],
-        //         "errors" => []
-        //     ], 400);
-        // }
-
-        $publicKey = "public_zYNahpz5UmA+lO+icYgYIsz+2MM=";
-        $privateKey = "private_R+sx/ogCDKyO+NkHQn3b/mhsf1s=";
-        $imageKitUrl = "https://ik.imagekit.io/apinull";
-
-        $imageKit = new ImageKit(
-            $publicKey,
-            $privateKey,
-            $imageKitUrl
-        );
-
-        // instagram.com\/(?:[A-Za-z0-9_.]+\/)?(p|reels|reel|stories)\/([A-Za-z0-9-_]+) // patern get id
-
-        $url = "https://www.instagram.com/thriftcap/p/DCQfqRpB1-1/?__a=1&__d=dis";  // The target URL
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
-
-        $cookies =app_path("/data/cookies.txt");
-
-        curl_setopt($ch, CURLOPT_COOKIEFILE, $cookies);  // Path to the cookie file
-        curl_setopt($ch, CURLOPT_COOKIEJAR, $cookies);   // Same path to save any new cookies
-
-        // Set headers to appear as a real browser request
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
-            "X-IG-App-ID: 936619743392459",
-            "Sec-Fetch-Site: same-origin",
-        ]);
-
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        // handling not found
-
-        // if(true) {
-        //     return [
-        //         "data" => 1
-        //     ];
-        // }
-
-        if(preg_match('/Page Not Found/', $response)) {
+        if(!$request->has("media_url")) {
             return response()->json([
                 "data" => null,
                 "meta" => null,
                 "error" => [
-                    "message" => "post not found",
-                    "stacks" => []
+                    "message" => "media_url required for scraping, please provide it in on query parameters",
+                    "stacks" => null
                 ]
             ], 400);
         }
 
-        $decodeResponse = json_decode($response, JSON_OBJECT_AS_ARRAY);
+        $url = "https://www.instagram.com/thriftcap/p/DCQfqRpB1-1/?__a=1&__d=dis";  // The target URL
 
-        $media = [];
+        // check apakah patternnya sesuai
+        if(preg_match('/instagram.com\/(?:[A-Za-z0-9_.]+\/)?(?:p|reels|reel|stories)\/([A-Za-z0-9-_]+)/', $url, $extractHash)) {
+            // instagram.com\/(?:[A-Za-z0-9_.]+\/)?(?:p|reels|reel|stories)\/([A-Za-z0-9-_]+) // patern get id
 
-        preg_match('/^https\:\/\/.*\/p\/(.*?)\/\?__a=1&__d=dis$/', $url, $extractPostId);
 
-        foreach ($decodeResponse["items"][0]["carousel_media"] as $k => $carouselMedia) {
-            preg_match('/^https\:\/\/.*\/(.*?)\?stp=.*$/', $carouselMedia["image_versions2"]["candidates"][0]["url"], $extractFileName);
+            $hash = $extractHash[1];
+            dd($extractHash);
 
-            $uploadFile = $imageKit->uploadFile([
-                'file'          => $carouselMedia["image_versions2"]["candidates"][0]["url"], # required, "binary","base64" or "file url"
-                'fileName'      => end($extractFileName),  # required
-                "tags"          => end($extractPostId),
-                'isPublished'   => true,
-                "overwriteFile" => true,
-                "overwriteTags" => true,
-                "folder"        => "/".end($extractPostId),
+            // check apakah sudah ada post ini di data
+            $checkPost = DB::table("instagram.posts")->where("media_url", $url)->count();
+
+
+            dd($checkPost);
+
+            $publicKey = "public_zYNahpz5UmA+lO+icYgYIsz+2MM=";
+            $privateKey = "private_R+sx/ogCDKyO+NkHQn3b/mhsf1s=";
+            $imageKitUrl = "https://ik.imagekit.io/apinull";
+
+            $imageKit = new ImageKit(
+                $publicKey,
+                $privateKey,
+                $imageKitUrl
+            );
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+
+            $cookies =app_path("/data/cookies.txt");
+
+            curl_setopt($ch, CURLOPT_COOKIEFILE, $cookies);  // Path to the cookie file
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $cookies);   // Same path to save any new cookies
+
+            // Set headers to appear as a real browser request
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
+                "X-IG-App-ID: 936619743392459",
+                "Sec-Fetch-Site: same-origin",
             ]);
-            $media[] = [
-                "index"     => $k + 1,
-                "fileId"    => $uploadFile?->result?->fileId,
-                "fileUrl"   => $uploadFile?->result?->url,
-                "name"      => $uploadFile?->result?->name,
-            ];
+
+            $response = curl_exec($ch);
+            curl_close($ch);
+
+            // handling not found
+
+            // if(true) {
+            //     return [
+            //         "data" => 1
+            //     ];
+            // }
+
+            if(preg_match('/Page Not Found/', $response)) {
+                return response()->json([
+                    "data" => null,
+                    "meta" => null,
+                    "error" => [
+                        "message" => "post not found",
+                        "stacks" => []
+                    ]
+                ], 400);
+            }
+
+            $decodeResponse = json_decode($response, JSON_OBJECT_AS_ARRAY);
+
+            $media = [];
+
+            preg_match('/^https\:\/\/.*\/p\/(.*?)\/\?__a=1&__d=dis$/', $url, $extractPostId);
+
+            foreach ($decodeResponse["items"][0]["carousel_media"] as $k => $carouselMedia) {
+                preg_match('/^https\:\/\/.*\/(.*?)\?stp=.*$/', $carouselMedia["image_versions2"]["candidates"][0]["url"], $extractFileName);
+
+                $uploadFile = $imageKit->uploadFile([
+                    'file'          => $carouselMedia["image_versions2"]["candidates"][0]["url"], # required, "binary","base64" or "file url"
+                    'fileName'      => end($extractFileName),  # required
+                    "tags"          => end($extractPostId),
+                    'isPublished'   => true,
+                    "overwriteFile" => true,
+                    "overwriteTags" => true,
+                    "folder"        => "/".end($extractPostId),
+                ]);
+                $media[] = [
+                    "index"     => $k + 1,
+                    "fileId"    => $uploadFile?->result?->fileId,
+                    "fileUrl"   => $uploadFile?->result?->url,
+                    "name"      => $uploadFile?->result?->name,
+                ];
+            }
+
+            return response()->json([
+                "data" => $media,
+                "meta" => null,
+                "error" => null
+            ]);
+
+            // dd($media);
+        } else {
+            return response()->json([
+                "data" => null,
+                "meta" => null,
+                "error" => [
+                    "message" => "url pattern doesn't match"
+                ]
+            ], 400);
         }
-
-        return response()->json([
-            "data" => $media,
-            "meta" => [],
-            "errors" => []
-        ]);
-
-        // dd($media);
     }
 
     public function igFeed()
