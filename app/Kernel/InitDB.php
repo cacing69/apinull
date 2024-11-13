@@ -23,11 +23,11 @@ class InitDB
                     // 'collation' => 'utf8_unicode_ci',
                     // 'prefix' => '',
                     // ===
-                    'driver' => 'pgsql', // Atau 'sqlite', 'pgsql', 'mysql'.
-                    'host' => 'localhost',
-                    'database' => 'apinull',
-                    'username' => 'develop',
-                    'password' => '',
+                    'driver' => $_ENV["DB_CONNECTION"], // Atau 'sqlite', 'pgsql', 'mysql'.
+                    'host' => $_ENV["DB_HOST"],
+                    'database' => $_ENV["DB_DATABASE"],
+                    'username' => $_ENV['DB_USERNAME'],
+                    'password' => $_ENV['DB_PASSWORD'],
                     'charset' => 'utf8',
                     'collation' => 'utf8_unicode_ci',
                     'prefix' => '',
