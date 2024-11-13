@@ -1,0 +1,6 @@
+
+module: Info
+routes:
+  - path: /info
+    handler: Modules\Info\Http\InfoHandler::index
+    methods: [GET]
