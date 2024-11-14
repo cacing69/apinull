@@ -2,7 +2,6 @@
 
 namespace App\Kernel;
 use App\Kernel\LogManager;
-use Symfony\Component\HttpFoundation\Response;
 
 class ExceptionHandler
 {
@@ -14,26 +13,28 @@ class ExceptionHandler
         $logManager = new LogManager();
         $this->logger = $logManager->getLogger();
     }
-    public function handle(\Throwable $exception) : Response
+    public function handle(\Throwable $exception)
     {
+
+        // dd($exception);
         // Mengatur kode status HTTP berdasarkan jenis exception
-        $statusCode = 500; // Default: Internal Server Error
+        $statusCode = $exception->getCode() ?? 500; // Default: Internal Server Error
 
         // Mengatur pesan error berdasarkan jenis exception
-        $errorMessage = 'internal server error';
+        // $errorMessage = 'internal server error';
 
         // Cek jenis exception dan atur pesan yang sesuai
-        if ($exception instanceof \Error) {
-            $statusCode = 500; // Atur kode status untuk Error
-            $errorMessage = $exception->getMessage();
-        } elseif ($exception instanceof \Exception) {
-            $statusCode = 400; // Bad Request untuk Exception
-            $errorMessage = $exception->getMessage();
-        }
+        // if ($exception instanceof \Error) {
+            // $statusCode = 500; // Atur kode status untuk Error
+            // $errorMessage = $exception->getMessage();
+        // } elseif ($exception instanceof \Exception) {
+            // $statusCode = 400; // Bad Request untuk Exception
+            // $errorMessage = $exception->getMessage();
+        // }
 
         // Mengatur header response
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
+        // http_response_code($statusCode);
+        // header('Content-Type: application/json');
 
          // Catat kesalahan yang terjadi
         // $this->logger->error('Exception caught', [
@@ -45,10 +46,12 @@ class ExceptionHandler
 
         // Mengembalikan respons dalam bentuk array
         // Mengembalikan respons dalam bentuk JSON
-        return new Response(
-            json_encode(['error' => $errorMessage, 'code' => $statusCode]),
-            $statusCode,
-            ['Content-Type' => 'application/json']
-        );
+        return response()->json([
+            "data" => null,
+            "meta" => null,
+            'error' => [
+                "message" => $exception->getMessage()
+            ]
+        ] ,$statusCode);
     }
 }

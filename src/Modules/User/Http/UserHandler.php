@@ -26,8 +26,10 @@ class UserHandler extends BaseHandler
     }
     public function ping(Request $request)
     {
+
         // $this->logger->info('UserHandler: ping method called');
         $db = DB::table("public.configs")->get();
+
         $data = [
             "ping" => "pong",
             "env" => [
