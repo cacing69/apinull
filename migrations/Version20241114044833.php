@@ -38,7 +38,8 @@ final class Version20241114044833 extends AbstractMigration
 
         $table->setPrimaryKey(['id']);
 
-        $table->addUniqueConstraint(['email', 'username']);
+        $table->addUniqueConstraint(['email']);
+        $table->addUniqueConstraint(['username']);
     }
 
     public function down(Schema $schema): void

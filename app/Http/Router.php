@@ -2,6 +2,9 @@
 
 namespace App\Http;
 
+use App\Http\Middlewares\CorsMiddleware;
+use App\Http\Middlewares\FixHeadersMiddleware;
+use App\Http\Middlewares\InputSanitizationMiddleware;
 use App\Kernel\LogManager;
 use App\Http\Middlewares\AuthMiddleware;
 use Illuminate\Http\Request;
@@ -18,9 +21,9 @@ class Router
         "auth" => AuthMiddleware::class
     ];
     private $globalMiddleware = [
-        \pp\Http\Middlewares\CorsMiddleware::class,
-        \App\Http\Middlewares\FixHeadersMiddleware::class,
-        InputSanitizationMiddleware::class // Middleware sanitasi input
+        CorsMiddleware::class,
+        FixHeadersMiddleware::class,
+        InputSanitizationMiddleware::class
     ];
 
     /**

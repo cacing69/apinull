@@ -9,10 +9,12 @@ class UserRepository {
         $user = new User();
 
         // try {
-            $user->email = $data["email"];
-            // $user->name = $data["name"];
-            $user->password = $data["password"];
-            $user->save();
+        $user->email = $data["email"];
+        $user->name = $data["name"];
+        $user->password = $data["password"];
+        $user->save();
+
+
         // } catch (\Throwable $th) {
         //     throw new \Exception($th->getMessage(), 400);
 
