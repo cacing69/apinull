@@ -36,8 +36,12 @@ class Router
         // Muat rute tambahan yang diimpor dari file lain
         if (isset($this->routes['imports'])) {
             foreach ($this->routes['imports'] as $import) {
-                $importedRoutes = Yaml::parseFile(app_path("/".$import['resource']));
-                $this->allRoutes = array_merge($this->allRoutes, $importedRoutes['routes']);
+
+                if(file_exists(app_path($import['resource']))){
+                    $importedRoutes = Yaml::parseFile(app_path($import['resource']));
+                    $this->allRoutes = array_merge($this->allRoutes, $importedRoutes['routes']);
+                }
+
             }
         }
 
@@ -87,8 +91,14 @@ class Router
         try {
             foreach ($this->allRoutes as $route) {
                 // Cek apakah rute cocok dengan URI dan metode request
-                $routePath = preg_replace('/\{[a-zA-Z]+\}/', '([a-zA-Z0-9]+)', $route['path']);
-                if (preg_match('#^' . $routePath . '$#', $path) && in_array($method, $route['methods'])) {
+                $routePath = preg_replace('/\{[a-zA-Z_][a-zA-Z0-9_]*\}/', '([a-zA-Z0-9_-]+)', $route['path']);
+
+                if (preg_match('#^' . $routePath . '$#', $path)) {
+
+                    if (!in_array($method, $route['methods'])) {
+                        return $this->createErrorResponse("method {$method} not allowed for this route", 405);
+                    }
+
                     [$handlerClass, $handlerMethod] = explode('::', $route['handler']);
                     $handler = new $handlerClass();
 
@@ -164,7 +174,13 @@ class Router
      */
     private function createErrorResponse(string $message, int $statusCode)
     {
-        return response()->json(['error' => $message], $statusCode);
+        return response()->json([
+            "data" => null,
+            "meta" => null,
+            'error' => [
+                "message" => $message
+            ]
+        ], $statusCode);
     }
 
     /**

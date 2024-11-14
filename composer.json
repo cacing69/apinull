@@ -43,7 +43,8 @@
     "migrate-run": "php vendor/bin/doctrine-migrations migrations:migrate --configuration=config/migrations.php --db-configuration=config/migrations-db.php",
     "migrate-create": "php vendor/bin/doctrine-migrations migrations:generate --configuration=config/migrations.php --db-configuration=config/migrations-db.php",
     "migrate-status": "php vendor/bin/doctrine-migrations migrations:status --configuration=config/migrations.php --db-configuration=config/migrations-db.php",
-    "migrate-list": "php vendor/bin/doctrine-migrations migrations:list --configuration=config/migrations.php --db-configuration=config/migrations-db.php"
+    "migrate-list": "php vendor/bin/doctrine-migrations migrations:list --configuration=config/migrations.php --db-configuration=config/migrations-db.php",
+    "module-create": "php console.php module:create"
   },
   "config": {
     "process-timeout": 0

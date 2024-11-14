@@ -1,0 +1,8 @@
+module: Dummy
+routes:
+  - path: /dummy
+    handler: Modules\Dummy\Http\DummyHandler::index
+    methods: [GET]
+  - path: /dummy/post
+    handler: Modules\Dummy\Http\DummyHandler::store
+    methods: [POST]

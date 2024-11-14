@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Console;
 
 use Symfony\Component\Console\Attribute\AsCommand;

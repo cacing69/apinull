@@ -4,7 +4,11 @@ use Symfony\Component\VarDumper\VarDumper;
 if (!function_exists('app_path')) {
     function app_path($path = "")
     {
-        return APINULL_PATH . $path;
+        if(strlen($path) === 0) {
+            return APINULL_PATH;
+        } else {
+            return preg_replace('/\\'.DIRECTORY_SEPARATOR.'+/', DIRECTORY_SEPARATOR, APINULL_PATH.DIRECTORY_SEPARATOR.$path);
+        }
     }
 }
 

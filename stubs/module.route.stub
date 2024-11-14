@@ -1,0 +1,5 @@
+module: {moduleName}
+routes:
+  - path: /{lowerModuleName}
+    handler: Modules\{moduleName}\Http\{moduleName}Handler::index
+    methods: [GET]

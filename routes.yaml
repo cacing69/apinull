@@ -2,4 +2,4 @@ imports:
   - { resource: src/Modules/User/user.routes.yaml }
   - { resource: src/Modules/Test/test.routes.yaml }
   - { resource: src/Modules/Scrape/scrape.routes.yaml }
-  - { resource: src/Modules/Info/info.routes.yaml }
+  - { resource: src/Modules/Dummy/dummy.routes.yaml }
