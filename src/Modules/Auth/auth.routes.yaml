@@ -1,0 +1,6 @@
+module: Auth
+group: auth
+routes:
+  - path: /register
+    handler: Modules\Auth\Http\AuthHandler::register
+    methods: [POST]

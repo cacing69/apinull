@@ -14,7 +14,7 @@ final class Version20241112143414 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'create a table called posts, which is used to store post data and media details from instagram.';
+        return 'create a table posts (store instagram data)';
     }
 
     public function up(Schema $schema): void
@@ -26,7 +26,7 @@ final class Version20241112143414 extends AbstractMigration
         $table->addColumn('id', 'bigint', ['autoincrement' => true]); // bigInt untuk ID
         $table->addColumn("media_url", "string");
         $table->addColumn("media_id", "string");
-        $table->addColumn("caption", "string", ['notnull' => false]);
+        $table->addColumn("caption", "text", ['notnull' => false]);
         $table->addColumn("category", "string", ['notnull' => false]);
         $table->addColumn("brand", "string", ['notnull' => false]);
         $table->addColumn("design", "string", ['notnull' => false]);

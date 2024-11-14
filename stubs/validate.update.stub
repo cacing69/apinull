@@ -1,0 +1,3 @@
+id:
+  required: true
+  unique: users,id,:id

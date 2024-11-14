@@ -40,6 +40,10 @@ class ModuleCreateCommand extends Command
         // create sub dir
         mkdir($handlerDir, 0755);
 
+        // validate
+        mkdir($handlerDir.DIRECTORY_SEPARATOR."Validate", 0755);
+
+
         // create handler
         $handlerContent = file_get_contents($app_path."stubs/handler.stub");
         $handlerContent = str_replace("{moduleName}", $name, $handlerContent);

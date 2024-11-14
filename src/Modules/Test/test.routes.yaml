@@ -1,8 +1,0 @@
-module: Test
-routes:
-  - path: /
-    handler: Modules\Test\Http\TestHandler::test
-    methods: [GET]
-  - path: /error
-    handler: Modules\Test\Http\TestHandler::error
-    methods: [GET]

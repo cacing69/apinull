@@ -2,42 +2,35 @@
 
 namespace App\Kernel;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Capsule\Manager;
 
 class InitDB
 {
-    private static $capsule;
+    private static $manager;
 
     public static function getInstance()
     {
-        if (self::$capsule === null) {
-            self::$capsule = new Capsule();
 
-            self::$capsule->addConnection([
-                    // 'driver' => 'pgsql', // Atau 'sqlite', 'pgsql', 'mysql'.
-                    // 'host' => 'us-east-1.sql.xata.sh',
-                    // 'database' => 'apinull',
-                    // 'username' => '3aadso',
-                    // 'password' => 'xau_bMQYUHFhI4vmowi9q88GRdpjkFJuJ2fB1',
-                    // 'charset' => 'utf8',
-                    // 'collation' => 'utf8_unicode_ci',
-                    // 'prefix' => '',
-                    // ===
-                    'driver' => $_ENV["DB_CONNECTION"], // Atau 'sqlite', 'pgsql', 'mysql'.
+        if (self::$manager === null) {
+            self::$manager = new Manager();
+
+            self::$manager->addConnection([
+                    'driver' => $_ENV["DB_CONNECTION"],
                     'host' => $_ENV["DB_HOST"],
                     'database' => $_ENV["DB_DATABASE"],
                     'username' => $_ENV['DB_USERNAME'],
                     'password' => $_ENV['DB_PASSWORD'],
+                    'port' => 5432,
                     'charset' => 'utf8',
-                    'collation' => 'utf8_unicode_ci',
                     'prefix' => '',
+                    'schema'   => 'public',
             ]);
 
             // Menginisialisasi Eloquent ORM
-            self::$capsule->setAsGlobal();
-            self::$capsule->bootEloquent();
+            self::$manager->setAsGlobal();
+            self::$manager->bootEloquent();
         }
 
-        return self::$capsule;
+        return self::$manager;
     }
 }

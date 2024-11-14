@@ -155,27 +155,34 @@ class BaseHandler
 
         if ($validator->fails()) {
             // Ambil pesan kesalahan dan throw exception atau kembalikan hasil
-            return response()->json(["data" => $validator->errors()->all()], 403);
+            return response()->json([
+                "data" => null,
+                "meta" => null,
+                "error" => [
+                    "message" => "error unprocessable entity",
+                    "stacks" => $validator->errors()->all()
+                ]
+            ], 422);
         }
     }
 
-    protected function convertYamlToLaravelRules(array $rules)
-    {
-        $laravelRules = [];
-        foreach ($rules as $field => $fieldRules) {
-            $laravelRules[$field] = [];
+    // protected function convertYamlToLaravelRules(array $rules)
+    // {
+    //     $laravelRules = [];
+    //     foreach ($rules as $field => $fieldRules) {
+    //         $laravelRules[$field] = [];
 
-            foreach ($fieldRules as $rule => $value) {
-                if ($value === true) {
-                    $laravelRules[$field][] = $rule;
-                } elseif (is_numeric($value)) {
-                    $laravelRules[$field][] = $rule . ':' . $value;
-                }
-            }
+    //         foreach ($fieldRules as $rule => $value) {
+    //             if ($value === true) {
+    //                 $laravelRules[$field][] = $rule;
+    //             } elseif (is_numeric($value)) {
+    //                 $laravelRules[$field][] = $rule . ':' . $value;
+    //             }
+    //         }
 
-            $laravelRules[$field] = implode('|', $laravelRules[$field]);
-        }
+    //         $laravelRules[$field] = implode('|', $laravelRules[$field]);
+    //     }
 
-        return $laravelRules;
-    }
+    //     return $laravelRules;
+    // }
 }

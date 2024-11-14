@@ -1,0 +1,6 @@
+name:
+  required: true
+username:
+  required: true
+  min: 8
+  unique: users,username

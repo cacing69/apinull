@@ -134,7 +134,7 @@ class Router
         if (!empty($this->duplicates) && in_array($path, $this->duplicates)) {
             // Handle or log the duplicates
             // For example: log the duplicates or return an error response
-            return $this->createErrorResponse("path '".$path."' duplicate", 409);
+            return $this->createErrorResponse("path '".$path."' duplicate", 500);
         }
 
         // $requestId = uniqid('request_', true);

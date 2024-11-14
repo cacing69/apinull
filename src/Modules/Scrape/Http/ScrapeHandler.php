@@ -135,13 +135,13 @@ class ScrapeHandler extends BaseHandler
 
 
             $hash = $extractHash[1];
-            dd($extractHash);
+            // dd($extractHash);
 
             // check apakah sudah ada post ini di data
             $checkPost = DB::table("instagram.posts")->where("media_url", $url)->count();
 
 
-            dd($checkPost);
+            // dd($checkPost);
 
             $publicKey = "public_zYNahpz5UmA+lO+icYgYIsz+2MM=";
             $privateKey = "private_R+sx/ogCDKyO+NkHQn3b/mhsf1s=";

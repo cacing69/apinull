@@ -105,7 +105,7 @@ class UserHandler extends BaseHandler
 
         $rulesYaml = Yaml::parseFile(__DIR__."/Validate/user.create.yaml") ?? [];
 
-        $rules = $this->convertYamlToLaravelRules($rulesYaml);
+        $rules = convert_yaml_to_laravel_rules($rulesYaml);
         // $rules['email'] = str_replace(':id', $userId, $rules['email']); // Ganti :id dengan userId saat ini
 
         // Lakukan validasi

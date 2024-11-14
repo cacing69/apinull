@@ -9,7 +9,7 @@ class CorsMiddleware
     {
         // Menambahkan header CORS
         header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+        header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS");
         header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
         // Untuk menangani preflight request
