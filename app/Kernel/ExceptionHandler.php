@@ -34,14 +34,14 @@ class ExceptionHandler
                 "meta" => null,
                 "error" => [
                     "message" => $this->getErrorMessage($exception),
-                    "stacks" => [
-                        [
+                    "stacks" => @$_ENV["APP_ENV"] === "local" ? [
+                         [
                             "type" => get_class($exception),
                             "trace" => $exception->getMessage(),
                             "file" => $exception->getFile(),
                             "line" => $exception->getLine(),
                         ]
-                    ]
+                    ] : null
                 ]
             ], $httpCode);
         }

@@ -1,0 +1,6 @@
+email:
+  required: true
+  email: true
+password:
+  required: true
+  min: 8

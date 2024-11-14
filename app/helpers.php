@@ -57,6 +57,31 @@ if (!function_exists('convert_yaml_to_laravel_rules')) {
     }
 }
 
+if (!function_exists('response_error')) {
+    function response_error($message, $httpCode = 400)
+    {
+        return response()->json([
+            "data" => null,
+            "meta" => null,
+            "error" => [
+                "message" => $message,
+                "stacks" => null
+            ]
+        ], $httpCode);
+    }
+}
+
+if (!function_exists('response_success')) {
+    function response_success($data, $meta = null, $httpCode = 200)
+    {
+        return response()->json([
+            "data" => $data,
+            "meta" => null,
+            "error" => null
+        ], $httpCode);
+    }
+}
+
 /**
  * Membuat respons JSON.
  *

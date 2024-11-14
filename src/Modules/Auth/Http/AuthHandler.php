@@ -5,6 +5,7 @@ use App\Http\BaseHandler;
 use Illuminate\Http\Request;
 use Illuminate\Database\Capsule\Manager as DB;
 use Models\User;
+use Repository\AuthRepository;
 use Repository\UserRepository;
 
 class AuthHandler extends BaseHandler
@@ -28,6 +29,32 @@ class AuthHandler extends BaseHandler
 
         $data = [
             "data" => $save,
+            "meta" => null,
+            "error" => null
+        ];
+
+        dd($data);
+
+        return $data;
+    }
+
+    public function token(Request $request)
+    {
+        $rules = yaml_validator("Auth", "token");
+
+        $this->validate($request->all(), $rules);
+
+        $authRepo = new AuthRepository();
+        $userRepo = new UserRepository();
+
+        if($userRepo->countUserByEmail($request->email) === 0){
+            return response_error("user not found");
+        }
+
+        $user = $authRepo->check($request->email, $request->password);
+
+        $data = [
+            "data" => $user,
             "meta" => null,
             "error" => null
         ];
