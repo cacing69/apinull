@@ -41,6 +41,8 @@ class ExceptionHandler
         //     'stack' => $exception->getTraceAsString(),
         // ]);
 
+        // dd(1);
+
         // Mengembalikan respons dalam bentuk array
         // Mengembalikan respons dalam bentuk JSON
         return new Response(

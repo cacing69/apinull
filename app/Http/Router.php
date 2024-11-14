@@ -12,6 +12,8 @@ class Router
     private $routes;
     private $allRoutes = [];
     private $logger;
+    private $pathTracker = [];
+    private $duplicates = [];
     private $mapMiddleware = [
         "auth" => AuthMiddleware::class
     ];
@@ -33,14 +35,64 @@ class Router
         $logManager = new LogManager();
         $this->logger = $logManager->getLogger();
 
+        // Start with an empty array to hold paths and duplicates
+
         // Muat rute tambahan yang diimpor dari file lain
         if (isset($this->routes['imports'])) {
             foreach ($this->routes['imports'] as $import) {
 
                 if(file_exists(app_path($import['resource']))){
                     $importedRoutes = Yaml::parseFile(app_path($import['resource']));
+
+                    if(array_key_exists("group", $importedRoutes)){
+                        if(strlen($importedRoutes["group"]) > 0) {
+                            foreach ($importedRoutes["routes"] as $key => $value) {
+                                $importedRoutes["routes"][$key]["path"] = "/" . $importedRoutes["group"] . $value["path"];
+
+                                // Merge and check for duplicates in one loop
+                                // foreach ($importedRoutes['routes'] as $route) {
+                                    // $path = $route['path'];
+
+                                    // If path exists in tracker, it's a duplicate
+                                    if (isset($this->pathTracker[$importedRoutes["routes"][$key]["path"]])) {
+                                        $this->duplicates[] = $importedRoutes["routes"][$key]["path"];
+                                    } else {
+                                        // Add unique paths to tracker and allRoutes
+                                        // $this->allRoutes[] = $route;
+                                        $this->pathTracker[$importedRoutes["routes"][$key]["path"]] = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    // dd($importedRoutes);
                     $this->allRoutes = array_merge($this->allRoutes, $importedRoutes['routes']);
-                }
+
+                    // $tmpRouteHolder = [];
+
+                    // foreach ($this->allRoutes as $key => $value) {
+                    //     $tmpRouteHolder["original"][] = $value["path"];
+                    // }
+
+                    // $tmpRouteHolder["unique"] = array_unique($tmpRouteHolder["original"]);
+
+                    // if (count( $tmpRouteHolder["unique"]) !== count( $tmpRouteHolder["original"])) {
+
+                    //     $duplicateRoute =  array_diff_assoc($tmpRouteHolder["original"], $tmpRouteHolder["unique"]); // Return only duplicate values
+
+                    // }
+
+                    // $matchingKeys = array_intersect_key($this->allRoutes, $this->allRoutes); // This will return an array containing only the keys with the same value
+                    // dd($tmpRouteHolder);
+
+                    // $withoutDuplicates = array_unique($this->allRoutes);
+
+                    // $checkDuplicateRoute = array_diff($this->allRoutes, $withoutDuplicates);
+
+
+                // }
 
             }
         }
@@ -77,8 +129,16 @@ class Router
      */
     public function dispatch(Request $request)
     {
-        $requestId = uniqid('request_', true);
         $path = $request->getPathInfo();
+
+        if (!empty($this->duplicates) && in_array($path, $this->duplicates)) {
+            // Handle or log the duplicates
+            // For example: log the duplicates or return an error response
+            return $this->createErrorResponse("path '".$path."' duplicate", 409);
+        }
+
+        // $requestId = uniqid('request_', true);
+
         $method = $request->getMethod();
 
         // Logging request yang diterima

@@ -5,6 +5,10 @@ routes:
     handler: Modules\User\Http\UserHandler::ping
     methods: [GET]
 
+  - path: /ping
+    handler: Modules\User\Http\UserHandler::ping
+    methods: [GET]
+
   - path: /profile
     handler: Modules\User\Http\UserHandler::profile
     methods: [GET]
