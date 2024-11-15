@@ -1,9 +1,5 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1);
-// ini_set('error_log', __DIR__.DIRECTORY_SEPARATOR."logs".DIRECTORY_SEPARATOR."error-".date("Y-m-d").".log");
 
 use App\Kernel\InitDB;
 use App\Http\Router;
