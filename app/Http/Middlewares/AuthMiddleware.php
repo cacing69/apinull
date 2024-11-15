@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Middlewares;
-use App\Kernel\LogManager;
+// use App\Kernel\LogManager;
 use Illuminate\Http\Request;
 
 class AuthMiddleware
@@ -12,8 +12,8 @@ class AuthMiddleware
     {
 
         // Inisialisasi logger
-        $logManager = new LogManager();
-        $this->logger = $logManager->getLogger();
+        // $logManager = new LogManager();
+        // $this->logger = $logManager->getLogger();
     }
     public function handle(Request $request, callable $next)
     {

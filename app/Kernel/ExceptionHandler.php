@@ -2,7 +2,7 @@
 
 namespace App\Kernel;
 
-use App\Kernel\LogManager;
+// use App\Kernel\LogManager;
 use Whoops\Run;
 use Whoops\Handler\PrettyPageHandler;
 
@@ -15,8 +15,8 @@ class ExceptionHandler
     {
         $this->whoops = new Run();
         // Inisialisasi logger
-        $logManager = new LogManager();
-        $this->logger = $logManager->getLogger();
+        // $logManager = new LogManager();
+        // $this->logger = $logManager->getLogger();
     }
 
     public function handle(\Throwable $exception)

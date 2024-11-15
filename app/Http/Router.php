@@ -6,7 +6,7 @@ use App\Http\Middlewares\CorsMiddleware;
 use App\Http\Middlewares\FixHeadersMiddleware;
 use App\Http\Middlewares\InputSanitizationMiddleware;
 use App\Kernel\Container;
-use App\Kernel\LogManager;
+// use App\Kernel\LogManager;
 use App\Http\Middlewares\AuthMiddleware;
 use Illuminate\Http\Request;
 use Symfony\Component\Yaml\Yaml;
@@ -38,8 +38,8 @@ class Router
         $this->container = $container;
 
         // Inisialisasi logger
-        $logManager = new LogManager();
-        $this->logger = $logManager->getLogger();
+        // $logManager = new LogManager();
+        // $this->logger = $logManager->getLogger();
 
         // Start with an empty array to hold paths and duplicates
 
