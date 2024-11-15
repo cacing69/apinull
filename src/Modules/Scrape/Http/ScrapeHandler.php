@@ -138,7 +138,7 @@ class ScrapeHandler extends BaseHandler
             // dd($extractHash);
 
             // check apakah sudah ada post ini di data
-            $checkPost = DB::table("instagram.posts")->where("media_url", $url)->count();
+            $checkPost = DB::table("instagram.posts")->where("media_url", $url)->exists();
 
 
             // dd($checkPost);

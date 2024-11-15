@@ -5,6 +5,7 @@ namespace App\Http;
 use App\Http\Middlewares\CorsMiddleware;
 use App\Http\Middlewares\FixHeadersMiddleware;
 use App\Http\Middlewares\InputSanitizationMiddleware;
+use App\Kernel\Container;
 use App\Kernel\LogManager;
 use App\Http\Middlewares\AuthMiddleware;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Symfony\Component\Yaml\Yaml;
 class Router
 {
     private $routes;
+    private $container;
     private $allRoutes = [];
     private $logger;
     private $pathTracker = [];
@@ -30,9 +32,10 @@ class Router
      * Constructor untuk inisialisasi router dengan file YAML dan logger
      * @param string $configFile
      */
-    public function __construct($configFile)
+    public function __construct($configFile, Container $container)
     {
         $this->routes = Yaml::parseFile($configFile);
+        $this->container = $container;
 
         // Inisialisasi logger
         $logManager = new LogManager();
@@ -135,7 +138,12 @@ class Router
                     }
 
                     [$handlerClass, $handlerMethod] = explode('::', $route['handler']);
-                    $handler = new $handlerClass();
+
+                    // Gunakan container untuk melakukan resolve pada handler
+                    $handler = $this->container->make($handlerClass);
+                    // dd($handler);
+
+                    // $handler = new $handlerClass();
 
                     $params = $this->getParamsFromPath($route['path'], $path);
 

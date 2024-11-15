@@ -27,20 +27,20 @@ if (!function_exists('dd')) {
     }
 }
 
-if (!function_exists('yaml_validator')) {
-    function yaml_validator($module, $rule)
+if (!function_exists('yaml_request_validator')) {
+    function yaml_request_validator($module, $rule)
     {
         $lowerName = strtolower($module);
         $rulesYaml = Yaml::parseFile(app_path("src/Modules/{$module}/Http/Validate/{$lowerName}.{$rule}.yaml")) ?? [];
 
-        $rulesConvert = convert_yaml_to_laravel_rules($rulesYaml);
+        $rulesConvert = convert_yaml_to_validate_laravel_rules($rulesYaml);
 
         return $rulesConvert;
     }
 }
 
-if (!function_exists('convert_yaml_to_laravel_rules')) {
-    function convert_yaml_to_laravel_rules(array $rules)
+if (!function_exists('convert_yaml_to_validate_laravel_rules')) {
+    function convert_yaml_to_validate_laravel_rules(array $rules)
     {
         $laravelRules = [];
         foreach ($rules as $field => $fieldRules) {
@@ -89,7 +89,6 @@ if (!function_exists('response_success')) {
 if (!function_exists('auth_id')) {
     function auth_id()
     {
-
         return auth()->id;
     }
 }

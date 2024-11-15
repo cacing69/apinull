@@ -10,15 +10,25 @@ use Repository\UserRepository;
 
 class AuthHandler extends BaseHandler
 {
+    private $userRepository;
+    private $authRepository;
+
+    public function __construct(UserRepository $userRepository, AuthRepository $authRepository) {
+        parent::__construct();
+
+        $this->userRepository = $userRepository;
+        $this->authRepository = $authRepository;
+
+    }
     public function register(Request $request)
     {
-        $rules = yaml_validator("Auth", "register");
+        $rules = yaml_request_validator("Auth", "register");
 
         $this->validate($request->all(), $rules);
 
-        $emailCheck = User::where("email", $request->email)->count();
+        $emailCheck = User::where("email", $request->email)->exists();
 
-        if($emailCheck > 0){
+        if($emailCheck){
 
         }
         // $emailCheck = DB::table("public.users")->get();
@@ -38,23 +48,23 @@ class AuthHandler extends BaseHandler
 
     public function token(Request $request)
     {
-        $rules = yaml_validator("Auth", "token");
+        $rules = yaml_request_validator("Auth", "token");
 
         $this->validate($request->all(), $rules);
 
-        $authRepo = new AuthRepository();
-        $userRepo = new UserRepository();
+        // $authRepo = new AuthRepository();
+        // $userRepo = new UserRepository();
 
-        if($userRepo->countUserByEmail($request->email) === 0){
+        if($this->userRepository->countUserByEmail($request->email) === 0){
             return response_error("user not found");
         }
 
-        $user = $authRepo->check($request->email, $request->password);
+        $user = $this->authRepository->check($request->email, $request->password);
 
 
 
         $data = [
-            "data" => array_merge($user->only(["email", "avatar"]), $authRepo->generateTokenUser($user)),
+            "data" => array_merge($user->only(["email", "avatar"]), $this->authRepository->generateTokenUser($user)),
             "meta" => null,
             "error" => null
         ];

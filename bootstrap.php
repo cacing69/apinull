@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 define("APINULL_PATH", __DIR__);
 
 
+$container = new \App\Kernel\Container();
+
+// Membaca konfigurasi dari containers.php dan melakukan binding ke container
+$repositories = require_once __DIR__ . '/containers.php';
+
+foreach ($repositories as $abstract => $concrete) {
+    $container->bind($abstract, $concrete);
+}
 
 // preg_match('/localhost:\d{4}/', "asdasdasd.asdasd.asdas", $matches);
 // ;
@@ -31,7 +39,7 @@ InitDB::getInstance();
 $request = Request::capture();
 
 // Inisialisasi router dan membaca rute dari file YAML
-$router = new Router(__DIR__ . '/routes.yaml');
+$router = new Router(__DIR__ . '/routes.yaml', $container);
 
 // Mendistribusikan request dan mendapatkan respons yang sesuai dari handler
 $response = $router->dispatch($request);

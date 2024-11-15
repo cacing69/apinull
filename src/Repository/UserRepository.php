@@ -15,8 +15,8 @@ class UserRepository {
         return $user;
     }
 
-    public function countUserByEmail($email)
+    public function isEmailExists($email)
     {
-        return User::where("email", $email)->count();
+        return User::where("email", $email)->exists();
     }
 }
