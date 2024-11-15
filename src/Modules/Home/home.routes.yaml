@@ -1,0 +1,5 @@
+module: Home
+routes:
+  - path: /
+    handler: Modules\Home\Http\HomeHandler::index
+    methods: [GET]
