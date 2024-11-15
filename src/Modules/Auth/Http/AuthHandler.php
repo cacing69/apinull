@@ -55,8 +55,8 @@ class AuthHandler extends BaseHandler
         // $authRepo = new AuthRepository();
         // $userRepo = new UserRepository();
 
-        if($this->userRepository->countUserByEmail($request->email) === 0){
-            return response_error("user not found");
+        if(!$this->userRepository->isEmailExists($request->email)){
+            return response_error("User not found");
         }
 
         $user = $this->authRepository->check($request->email, $request->password);

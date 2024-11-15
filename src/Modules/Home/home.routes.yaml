@@ -3,3 +3,6 @@ routes:
   - path: /
     handler: Modules\Home\Http\HomeHandler::index
     methods: [GET]
+  - path: /path/{id}
+    handler: Modules\Home\Http\HomeHandler::path
+    methods: [GET]

@@ -15,7 +15,7 @@ class AuthRepository
         $user = User::where("email", $email)->first();
 
         if (!password_verify($password, $user->password)) {
-            throw new \Exception("wrong user credentials", 400);
+            throw new \Exception("Wrong user credentials", 400);
         }
 
         return $user;
@@ -52,22 +52,5 @@ class AuthRepository
             "accessToken" => $token,
             "expiredAt" => $timestamp->format(DateTime::ISO8601)
         ];
-    }
-
-    public function parseToken($token)
-    {
-        // $key = new AsymmetricSecretKey("Bya4ESlzBcywEOl1N4Jn2wEZhqwbOnZI");
-        // $token = (new Builder())
-        //     ->setKey($key)
-        //     ->setVersion(new Version4())
-        //     ->setPurpose(Purpose::public())
-        //     // Set it to expire in one day
-        //     ->setIssuedAt()
-        //     ->setNotBefore()
-        //     ->setExpiration(new \DateTimeImmutable('+30 day'))
-        //     ->setClaims($user->toArray())
-        //     ->toString();
-
-        return $token;
     }
 }

@@ -8,7 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(name: 'module:create')]
-class ModuleCreateCommand extends Command
+class ExampleCommand extends Command
 {
     // Configure the command's name, description, and help text
     protected function configure()

@@ -1,25 +1,55 @@
 <?php
 
 namespace App\Http;
+
 use Illuminate\Translation\ArrayLoader;
 use Illuminate\Translation\Translator;
 use Illuminate\Validation\Factory as ValidatorFactory;
 
+/**
+ * Class BaseHandler
+ *
+ * The BaseHandler class serves as a foundational class for handling validation
+ * and logging functionalities within the application. It uses the Laravel
+ * translation and validation components to handle validation rules and error messages.
+ * This class is typically extended or instantiated to provide validation
+ * capabilities in the application.
+ *
+ * It initializes a custom validation loader, translator, and validator,
+ * and includes methods for setting up a logger and validating request data.
+ *
+ * @package App\Http
+ */
 class BaseHandler
 {
+    /**
+     * @var ValidatorFactory The validator instance used for validating data.
+     */
     protected $validator;
-    protected $logger;
-    // protected $request;
 
-    // public function __construct(ServiceContainer $container)
+    /**
+     * @var Logger The logger instance for logging errors and other data (currently not implemented).
+     */
+    protected $logger;
+
+    /**
+     * BaseHandler constructor.
+     *
+     * The constructor initializes the logger, sets up the translation loader
+     * for validation messages, and creates a validator factory instance.
+     * It loads custom validation error messages into the loader, which are
+     * used for validating data based on a set of rules.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->setupLogger();
 
-        // Inisialisasi loader dan translator
+        // Initialize the loader and translator
         $loader = new ArrayLoader();
 
-        // Tambahkan pesan validasi ke dalam array loader
+        // Add custom validation messages into the array loader
         $loader->addMessages('en', 'validation', [
             'accepted' => ':attribute must be accepted.',
             'active_url' => ':attribute is not a valid URL.',
@@ -130,7 +160,6 @@ class BaseHandler
                 ],
             ],
             'attributes' => [],
-
         ]);
 
         $translator = new Translator($loader, 'en');
@@ -138,48 +167,45 @@ class BaseHandler
         $this->validator = new ValidatorFactory($translator);
     }
 
+    /**
+     * Sets up the logger instance.
+     *
+     * This function initializes the logger for the application, which is used
+     * to log errors and other relevant information (currently commented out
+     * in this example).
+     *
+     * @return void
+     */
     protected function setupLogger()
     {
-        // Inisialisasi logger
-        // $logManager = new LogManager();
-        // $this->logger = $logManager->getLogger();
+        // Initialize logger
     }
 
+    /**
+     * Validates the given data against a set of rules.
+     *
+     * This method uses the validator instance to validate the provided data
+     * and return an error response if the validation fails.
+     *
+     * @param array $data The data to be validated.
+     * @param array $rules The validation rules.
+     * @return \Illuminate\Http\JsonResponse|null The response in case of validation failure or null.
+     */
     protected function validate(array $data, array $rules)
     {
-         // Membuat instance validator
+        // Create validator instance
         $validator = $this->validator->make($data, $rules);
 
         if ($validator->fails()) {
-            // Ambil pesan kesalahan dan throw exception atau kembalikan hasil
+            // Return validation errors in a JSON response
             return response()->json([
                 "data" => null,
                 "meta" => null,
                 "error" => [
-                    "message" => "error unprocessable entity",
+                    "message" => "Error unprocessable entity",
                     "stacks" => $validator->errors()->all()
                 ]
             ], 422);
         }
     }
-
-    // protected function convertYamlToLaravelRules(array $rules)
-    // {
-    //     $laravelRules = [];
-    //     foreach ($rules as $field => $fieldRules) {
-    //         $laravelRules[$field] = [];
-
-    //         foreach ($fieldRules as $rule => $value) {
-    //             if ($value === true) {
-    //                 $laravelRules[$field][] = $rule;
-    //             } elseif (is_numeric($value)) {
-    //                 $laravelRules[$field][] = $rule . ':' . $value;
-    //             }
-    //         }
-
-    //         $laravelRules[$field] = implode('|', $laravelRules[$field]);
-    //     }
-
-    //     return $laravelRules;
-    // }
 }

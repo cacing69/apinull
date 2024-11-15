@@ -1,58 +1,40 @@
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php'; // Autoload dependencies using Composer
 
-use App\Kernel\InitDB;
-use App\Http\Router;
-use Dotenv\Dotenv;
-use Illuminate\Http\Request;
+use App\Kernel\InitDB; // Import InitDB class to initialize the database
+use App\Http\Router; // Import Router class for routing HTTP requests
+use Dotenv\Dotenv; // Import Dotenv class to load environment variables
+use Illuminate\Http\Request; // Import Request class from Laravel's HTTP package
 
-define("APINULL_PATH", __DIR__);
+define("APINULL_PATH", __DIR__); // Define the constant 'APINULL_PATH' as the base directory of the project
 
-
+// Create a new container instance for dependency injection
 $container = new \App\Kernel\Container();
 
-// Membaca konfigurasi dari containers.php dan melakukan binding ke container
-$repositories = require_once __DIR__ .DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'containers.php';
-
+// Load the configuration file for container bindings and bind repositories to the container
+$repositories = require_once __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'containers.php';
 foreach ($repositories as $abstract => $concrete) {
-    $container->bind($abstract, $concrete);
+    $container->bind($abstract, $concrete); // Bind the abstract class to the concrete implementation
 }
 
-// preg_match('/localhost:\d{4}/', "asdasdasd.asdasd.asdas", $matches);
-// ;
-// dd(preg_match('/^localhost:\d{4}$/', $_SERVER['HTTP_HOST']."0"));
-
-if(preg_match('/^(localhost|127\.0\.0\.1):\d{4}$/', $_SERVER['HTTP_HOST'])) {
-    // Inisialisasi dotenv
+// Check if the current HTTP host matches the pattern for localhost with a port (e.g., localhost:8080)
+if (preg_match('/^(localhost|127\.0\.0\.1):\d{4}$/', $_SERVER['HTTP_HOST'])) {
+    // If the host is a local development server, initialize Dotenv to load environment variables
     $dotenv = Dotenv::createImmutable(__DIR__);
-    $dotenv->safeLoad();
+    $dotenv->safeLoad(); // Load .env file
 }
 
-// Baca variabel dari .env
-// $this->rateLimit = getenv('RATE_LIMIT') ?: 100;
-// $this->timeWindow = getenv('TIME_WINDOW') ?: 3600;
+// Initialize the database using Singleton pattern
+InitDB::getInstance(); // This will set up the database connection and initialize Eloquent ORM
 
-// Inisialisasi database menggunakan Singleton
-InitDB::getInstance();
+// Create a Request object from the global HTTP request data
+$request = Request::capture(); // Capture the incoming HTTP request
 
-// Membuat objek Request dari globals (data dari request HTTP saat ini)
-$request = Request::capture();
-
-// Inisialisasi router dan membaca rute dari file YAML
+// Initialize the Router and load routes from the routes.yaml file
 $router = new Router(__DIR__ . '/routes.yaml', $container);
 
-// Mendistribusikan request dan mendapatkan respons yang sesuai dari handler
+// Dispatch the captured request to find the appropriate handler and generate a response
 $response = $router->dispatch($request);
 
+// Send the generated response to the client
 $response->send();
-// Inisialisasi middleware untuk mengonversi respons menjadi JSON
-// $middleware = new JsonResponseMiddleware();
-
-// // Jalankan middleware dan kirim respons JSON ke klien
-// $jsonResponse = $middleware->handle($request, function($request) use ($response) {
-//     // Mengembalikan respons asli ke middleware untuk diproses lebih lanjut
-//     return $response;
-// });
-
-// // Kirim respons JSON ke klien
-// $jsonResponse->send();
