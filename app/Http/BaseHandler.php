@@ -1,9 +1,6 @@
 <?php
 
 namespace App\Http;
-use App\Kernel\LogManager;
-use App\Kernel\ServiceContainer;
-use Illuminate\Container\Container;
 use Illuminate\Translation\ArrayLoader;
 use Illuminate\Translation\Translator;
 use Illuminate\Validation\Factory as ValidatorFactory;
@@ -144,8 +141,8 @@ class BaseHandler
     protected function setupLogger()
     {
         // Inisialisasi logger
-        $logManager = new LogManager();
-        $this->logger = $logManager->getLogger();
+        // $logManager = new LogManager();
+        // $this->logger = $logManager->getLogger();
     }
 
     protected function validate(array $data, array $rules)
