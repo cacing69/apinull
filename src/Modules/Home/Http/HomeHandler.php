@@ -12,7 +12,7 @@ class HomeHandler extends BaseHandler
         $data = [
             "data" => null,
             "meta" => [
-                "message" => "welcome to ApiNull"
+                "message" => "welcome to apinull"
             ],
             "error" => null
         ];
