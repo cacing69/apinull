@@ -28,12 +28,12 @@ class ExceptionHandler
             $this->whoops->handleException($exception);
         } else {
 
-            $httpCode = preg_match('/^(?:4|5)\d{2}$/', $exception->getCode()) ? $exception->getCode() : 500;
+            $errorDetail = $this->getErrorMessage($exception);
             return response()->json([
                 "data" => null,
                 "meta" => null,
                 "error" => [
-                    "message" => $this->getErrorMessage($exception),
+                    "message" => $this->getErrorMessage($exception)["message"],
                     "stacks" => @$_ENV["APP_ENV"] === "local" ? [
                          [
                             "type" => get_class($exception),
@@ -43,16 +43,27 @@ class ExceptionHandler
                         ]
                     ] : null
                 ]
-            ], $httpCode);
+            ], $errorDetail["code"]);
         }
     }
 
     private function getErrorMessage(\Throwable $throwable)
     {
         if(preg_match('/SQLSTATE\[.*\]\:(.*)\:.*\sERROR/', $throwable->getMessage(), $extractMessage)) {
-            return trim(strtolower($extractMessage[1]));
+            return [
+                "message" => trim(strtolower($extractMessage[1])),
+                "code" => 500,
+            ];
+        } elseif(preg_match('/(No query results).*\[.*\]/', $throwable->getMessage(), $extractMessage)) {
+            return [
+                "message" => trim(strtolower($extractMessage[1])),
+                "code" => 404,
+            ];
         } else {
-            return $throwable->getMessage();
+            return [
+                "message" => $throwable->getMessage(),
+                "code" => preg_match('/^(?:4|5)\d{2}$/', $throwable->getCode()) ? $throwable->getCode() : 500,
+            ];
         }
     }
 }

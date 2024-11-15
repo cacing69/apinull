@@ -10,8 +10,24 @@ class User extends Model
     use SoftDeletes;
     protected $table = 'users';
     protected $primaryKey = "id";
-    protected $fillable = ['username', 'email', 'password'];
-    protected $hidden = ['password', 'remember_token'];
+    protected $fillable = [
+        'name',
+        'username',
+        'email',
+        'password',
+    ];
+    protected $hidden = [
+        'id',
+        'password',
+        'remember_token',
+        'verified_at',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
 
     const DELETED_AT = "deleted_at";
     const UPDATED_AT = "updated_at";

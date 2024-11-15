@@ -1,4 +1,8 @@
 <?php
+use Models\User;
+use ParagonIE\Paseto\Keys\Version4\AsymmetricPublicKey;
+use ParagonIE\Paseto\Parser;
+use ParagonIE\Paseto\Purpose;
 use Symfony\Component\VarDumper\VarDumper;
 use Symfony\Component\Yaml\Yaml;
 
@@ -79,6 +83,58 @@ if (!function_exists('response_success')) {
             "meta" => null,
             "error" => null
         ], $httpCode);
+    }
+}
+
+if (!function_exists('auth_id')) {
+    function auth_id()
+    {
+
+        return auth()->id;
+    }
+}
+
+
+if (!function_exists('auth')) {
+    function auth()
+    {
+        $claims = token_check();
+
+        return User::where("email", $claims["email"])->firstOrFail();
+    }
+}
+
+if (!function_exists('token_check')) {
+    function token_check()
+    {
+        $header = getallheaders();
+
+        if (!array_key_exists("Authorization", $header)) {
+           return response_error("authorization header missing", 401);
+        }
+
+        $authHeader = $header["Authorization"];
+
+        list($type, $token) = explode(" ", $authHeader, 2);
+
+        if ($type !== 'Bearer') {
+            return response_error("invalid token type", 401);
+        }
+
+        $publicKey = new AsymmetricPublicKey(base64_decode($_ENV["PASETO_PUBLIC_KEY"]));
+
+        try {
+            $parser =  (new Parser())
+            ->setKey($publicKey) // Gunakan kunci publik
+            ->setPurpose(Purpose::public())
+            ->parse($token);
+
+            $claims = $parser->getClaims();
+
+            return $claims;
+        } catch (\Exception $e) {
+            return response_error("invalid token: " . $e->getMessage());
+        }
     }
 }
 

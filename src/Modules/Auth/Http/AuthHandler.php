@@ -33,8 +33,6 @@ class AuthHandler extends BaseHandler
             "error" => null
         ];
 
-        dd($data);
-
         return $data;
     }
 
@@ -53,14 +51,19 @@ class AuthHandler extends BaseHandler
 
         $user = $authRepo->check($request->email, $request->password);
 
+
+
         $data = [
-            "data" => $user,
+            "data" => array_merge($user->only(["email", "avatar"]), $authRepo->generateTokenUser($user)),
             "meta" => null,
             "error" => null
         ];
 
-        dd($data);
-
         return $data;
+    }
+
+    public function profile(Request $request)
+    {
+        return response_success(auth());
     }
 }

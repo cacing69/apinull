@@ -7,12 +7,11 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use App\Kernel\InitDB;
 use App\Http\Router;
-// use App\Http\Middlewares\JsonResponseMiddleware;
 use Dotenv\Dotenv;
 use Illuminate\Http\Request;
-// use Symfony\Component\HttpFoundation\Request;
 
 define("APINULL_PATH", __DIR__);
+
 
 
 // preg_match('/localhost:\d{4}/', "asdasdasd.asdasd.asdas", $matches);

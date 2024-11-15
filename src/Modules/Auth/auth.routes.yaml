@@ -7,3 +7,7 @@ routes:
   - path: /token
     handler: Modules\Auth\Http\AuthHandler::token
     methods: [POST]
+  - path: /profile
+    handler: Modules\Auth\Http\AuthHandler::profile
+    methods: [GET]
+    middleware: [auth]
