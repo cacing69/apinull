@@ -12,7 +12,7 @@ define("APINULL_PATH", __DIR__);
 $container = new \App\Kernel\Container();
 
 // Membaca konfigurasi dari containers.php dan melakukan binding ke container
-$repositories = require_once __DIR__ .DIRECTORY_SEPARATOR.'configs'.DIRECTORY_SEPARATOR.'containers.php';
+$repositories = require_once __DIR__ .DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'containers.php';
 
 foreach ($repositories as $abstract => $concrete) {
     $container->bind($abstract, $concrete);
