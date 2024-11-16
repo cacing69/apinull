@@ -13,7 +13,7 @@ class HomeHandler extends BaseHandler
         $data = [
             "data" => null,
             "meta" => [
-                "message" => "welcome to apinull"
+                "message" => "Welcome to apinull"
             ],
             "error" => null
         ];
@@ -27,7 +27,20 @@ class HomeHandler extends BaseHandler
                 "id" => $id
             ],
             "meta" => [
-                "message" => "welcome to apinull"
+                "message" => "Welcome to path apinull"
+            ],
+            "error" => null
+        ];
+
+        return $data;
+    }
+
+    public function dump(Request $request)
+    {
+        $data = [
+            "data" => null,
+            "meta" => [
+                "message" => "Welcome to dump apinull"
             ],
             "error" => null
         ];

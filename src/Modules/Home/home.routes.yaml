@@ -6,3 +6,6 @@ routes:
   - path: /path/{id}
     handler: Modules\Home\Http\HomeHandler::path
     methods: [GET]
+  - path: /dump
+    handler: Modules\Home\Http\HomeHandler::dump
+    methods: [GET]

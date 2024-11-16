@@ -2,10 +2,12 @@
 
 namespace App\Http;
 
-use App\Http\Middlewares\CorsMiddleware;
-use App\Http\Middlewares\FixHeadersMiddleware;
-use App\Http\Middlewares\InputSanitizationMiddleware;
-use App\Http\Middlewares\AuthMiddleware;
+use App\Http\Middlewares\{
+    CorsMiddleware,
+    FixHeadersMiddleware,
+    InputSanitizationMiddleware,
+    AuthMiddleware
+};
 use App\Kernel\Container;
 use Illuminate\Http\Request;
 use Symfony\Component\Yaml\Yaml;
@@ -15,207 +17,285 @@ use Throwable;
 
 class Router
 {
-    /**
-     * Daftar rute yang terdaftar
-     *
-     * @var array
-     */
+    /** @var array Registered routes */
     private array $routes;
 
-    /**
-     * Kontainer untuk mengelola dependensi
-     *
-     * @var Container
-     */
+    /** @var Container Dependency container */
     private Container $container;
 
-    /**
-     * Semua rute yang telah diimpor dan digabungkan
-     *
-     * @var array
-     */
+    /** @var array Combined imported routes */
     private array $allRoutes = [];
+
+    /** @var array Route lookup index */
     private array $routeIndex = [];
 
-    /**
-     * Daftar rute yang memiliki path duplikat
-     *
-     * @var array
-     */
+    /** @var array Routes with duplicate paths */
     private array $duplicates = [];
 
-    /**
-     * Pemetaan nama middleware ke kelas middleware
-     *
-     * @var array
-     */
-    private array $mapMiddleware = [
+    /** @var array Middleware name to class mapping */
+    private array $middlewareMap = [
         "auth" => AuthMiddleware::class,
     ];
 
-    /**
-     * Daftar middleware global yang diterapkan ke semua rute
-     *
-     * @var array
-     */
+    private string $cacheFile;
+
+    /** @var array Global middleware applied to all routes */
     private array $globalMiddleware = [
         CorsMiddleware::class,
         FixHeadersMiddleware::class,
         InputSanitizationMiddleware::class,
     ];
 
+    private array $compiledMiddleware = [];
 
-    /**
-     * Konstruktor untuk inisialisasi router dengan file konfigurasi dan kontainer
-     *
-     * @param string $configFile
-     * @param Container $container
-     */
+    private array $resolvedHandlers = [];
+    private array $methodArgsCache = [];
+
     public function __construct(string $configFile, Container $container)
     {
-
-        $this->routes = Yaml::parseFile($configFile);
+        $this->cacheFile = storage_path('framework/cache/routes.php');
         $this->container = $container;
 
-
-        $this->initializeRoutes();
+        if ($this->shouldUseCache()) {
+            $this->loadFromCache();
+        } else {
+            $this->routes = Yaml::parseFile($configFile);
+            $this->initializeRoutes();
+            $this->cacheRoutes();
+        }
     }
 
-    /**
-     * Menginisialisasi dan memproses rute yang diimpor dari file YAML
-     */
+    private function shouldUseCache(): bool
+    {
+        return $_ENV["APP_ROUTE_CACHED"] === 'true' &&
+               file_exists($this->cacheFile) &&
+               filemtime($this->cacheFile) > $this->getLastConfigModified();
+    }
+
+    private function loadFromCache(): void
+    {
+        $cached = require $this->cacheFile;
+        $this->routeIndex = $cached['index'];
+        $this->allRoutes = $cached['routes'];
+    }
+
+    private function cacheRoutes(): void
+    {
+        if ($_ENV["APP_ROUTE_CACHED"] === 'true') {
+            $content = '<?php return ' . var_export([
+                'index' => $this->routeIndex,
+                'routes' => $this->allRoutes
+            ], true) . ';';
+
+            file_put_contents($this->cacheFile, $content);
+        }
+    }
+
+    private function getLastConfigModified(): int
+    {
+        $configFiles = [
+            // Main config file
+            app_path('routes.yaml'),
+            // Scan for all route files
+            ...glob(app_path('src/Modules/**/*.routes.yaml'))
+        ];
+
+        return max(array_map('filemtime', $configFiles));
+    }
+
     private function initializeRoutes(): void
     {
-        if (isset($this->routes['imports'])) {
-            foreach ($this->routes['imports'] as $import) {
-                $this->importRoutes($import);
-            }
+        $this->importConfiguredRoutes();
+        $this->mergeAttributeRoutes();
+        $this->buildRouteIndexes();
+        $this->applyGlobalMiddleware();
+    }
+
+    private function importConfiguredRoutes(): void
+    {
+        if (!isset($this->routes['imports'])) {
+            return;
         }
 
-        // Gabungkan rute yang diambil dari atribut dengan rute yang ada
-        $attributeRoutes = $this->getRoutesFromAttributes();
+        foreach ($this->routes['imports'] as $import) {
+            $this->processRouteImport($import);
+        }
+    }
+
+    private function processRouteImport(array $import): void
+    {
+        $filePath = app_path($import['resource']);
+        if (!file_exists($filePath)) {
+            return;
+        }
+
+        $importedRoutes = Yaml::parseFile($filePath);
+        $this->processRouteGroups($importedRoutes);
+        $this->trackDuplicateRoutes($importedRoutes);
+
+        $this->allRoutes = array_merge(
+            $this->allRoutes,
+            $importedRoutes['routes']
+        );
+    }
+
+    private function processRouteGroups(array &$routes): void
+    {
+        if (empty($routes['group'])) {
+            return;
+        }
+
+        array_walk($routes['routes'], function (&$route) use ($routes) {
+            $route['path'] = '/' . $routes['group'] . $route['path'];
+        });
+    }
+
+    private function trackDuplicateRoutes(array $routes): void
+    {
+        foreach ($routes['routes'] as $route) {
+            $routeKey = $this->createRouteKey($route);
+            $this->duplicates[$routeKey] = ($this->duplicates[$routeKey] ?? 0) + 1;
+        }
+    }
+
+    private function createRouteKey(array $route): string
+    {
+        return $route['path'] . '|' . implode(',', $route['methods']);
+    }
+
+    private function mergeAttributeRoutes(): void
+    {
+        $attributeRoutes = $this->scanAttributeRoutes();
         $this->allRoutes = array_merge($this->allRoutes, $attributeRoutes);
-
-        // Buat indeks untuk pencarian langsung berdasarkan path
-        $this->routeIndex = $this->buildRouteIndex($this->allRoutes);
-
-        $this->allRoutes = $this->addGlobalMiddleware($this->allRoutes, $this->globalMiddleware);
     }
 
-    /**
-     * Membuat indeks untuk pencarian rute berdasarkan path
-     */
-    private function buildRouteIndex(array $routes): array
+    private function buildRouteIndexes(): void
     {
-        $staticRoutes = [];
-        $dynamicRoutes = [];
+        $this->routeIndex = [
+            'static' => [],
+            'dynamic' => []
+        ];
 
-        foreach ($routes as $route) {
-            // Jika path mengandung parameter dinamis, tambahkan ke dynamicRoutes
-            if (strpos($route['path'], '{') !== false) {
-                $dynamicRoutes[] = $route;
-            } else {
-                // Rute statis bisa langsung diindeks
-                $staticRoutes[$route['path']] = $route;
+        foreach ($this->allRoutes as $route) {
+            $this->indexRoute($route);
+        }
+    }
+
+    private function indexRoute(array $route): void
+    {
+        if (strpos($route['path'], '{') !== false) {
+            $this->routeIndex['dynamic'][] = $route;
+        } else {
+            $this->routeIndex['static'][$route['path']] = $route;
+        }
+    }
+
+    private function applyGlobalMiddleware(): void
+    {
+        $middlewareNames = array_map(
+            fn($middleware) => basename(str_replace('\\', '/', $middleware)),
+            $this->globalMiddleware
+        );
+
+        $this->allRoutes = array_map(
+            fn($route) => $this->addMiddlewareToRoute($route, $middlewareNames),
+            $this->allRoutes
+        );
+    }
+
+    private function addMiddlewareToRoute(array $route, array $middleware): array
+    {
+        $route['middleware'] = array_merge(
+            $route['middleware'] ?? [],
+            $middleware
+        );
+        return $route;
+    }
+
+    public function dispatch(Request $request)
+    {
+        try {
+            $path = $request->getPathInfo();
+            $method = $request->getMethod();
+
+            $route = $this->findMatchingRoute($path);
+            if (!$route) {
+                return $this->createErrorResponse('Route not found', 404);
+            }
+
+            if (!in_array($method, $route['methods'])) {
+                return $this->createErrorResponse("Method {$method} not allowed", 405);
+            }
+
+            return $this->handleRoute($route, $request);
+        } catch (Throwable $e) {
+            return response_error($e->getMessage());
+        }
+    }
+
+    private function findMatchingRoute(string $path): ?array
+    {
+        // Check static routes first
+        if (isset($this->routeIndex['static'][$path])) {
+            return $this->routeIndex['static'][$path];
+        }
+
+        // Check dynamic routes
+        return $this->findDynamicRoute($path);
+    }
+
+    private function findDynamicRoute(string $path): ?array
+    {
+        foreach ($this->routeIndex['dynamic'] as $route) {
+            $pattern = $this->createRoutePattern($route['path']);
+            if (preg_match($pattern, $path)) {
+                return $route;
             }
         }
-
-        return ['static' => $staticRoutes, 'dynamic' => $dynamicRoutes];
+        return null;
     }
 
-    /**
-     * Mengimpor rute dari file eksternal dan menangani duplikat path
-     *
-     * @param array $import
-     */
-    private function importRoutes(array $import): void
+    private function createRoutePattern(string $routePath): string
     {
-        if (file_exists(app_path($import['resource']))) {
-            $importedRoutes = Yaml::parseFile(app_path($import['resource']));
-
-            $this->handleRouteGroups($importedRoutes);
-            $this->checkDuplicatePaths($importedRoutes);
-
-            $this->allRoutes = array_merge($this->allRoutes, $importedRoutes['routes']);
-        }
+        $pattern = preg_replace(
+            '/\{[a-zA-Z_][a-zA-Z0-9_]*\}/',
+            '([a-zA-Z0-9_-]+)',
+            $routePath
+        );
+        return '#^' . $pattern . '$#';
     }
 
-    /**
-     * Menangani rute grup jika ada dalam file konfigurasi
-     *
-     * @param array $importedRoutes
-     */
-    private function handleRouteGroups(array &$importedRoutes): void
+    private function handleRoute(array $route, Request $request)
     {
-        if (isset($importedRoutes['group']) && strlen($importedRoutes['group']) > 0) {
-            array_walk($importedRoutes['routes'], function (&$route) use ($importedRoutes) {
-                $route['path'] = '/' . $importedRoutes['group'] . $route['path'];
-            });
-        }
+        [$class, $method] = explode('::', $route['handler']);
+        $handler = $this->container->make($class);
+        $params = $this->extractRouteParams($route['path'], $request->getPathInfo());
+
+        // $reflectionMethod = new ReflectionMethod($class, $method);
+
+        $args = $this->resolveMethodArguments(
+            $class,
+            $method,
+            $params,
+            $request
+        );
+
+        $middlewares = $route['middleware'] ?? [];
+        $response = $this->executeMiddlewareChain($middlewares, $request, function() use ($handler, $method, $args) {
+            return call_user_func_array([$handler, $method], $args);
+        });
+
+        return response()->json($response);
     }
 
-    /**
-     * Memeriksa apakah ada path duplikat di rute yang diimpor
-     *
-     * @param array $importedRoutes
-     */
-    private function checkDuplicatePaths(array $importedRoutes): void
+    private function extractRouteParams(string $routePath, string $actualPath): array
     {
-        foreach ($importedRoutes['routes'] as $key => $value) {
-            $routeIdentifier = $value['path'] . '|' . implode(',', $value['methods']);
-
-            if (isset($this->duplicates[$routeIdentifier])) {
-                $this->duplicates[$routeIdentifier] += 1;
-            } else {
-                $this->duplicates[$routeIdentifier] = 1;
-            }
-        }
-    }
-
-    /**
-     * Menambahkan middleware global ke semua rute
-     *
-     * @param array $routes
-     * @param array $middlewareClass
-     * @return array
-     */
-    private function addGlobalMiddleware(array $routes, array $middlewareClass): array
-    {
-        $mappedMiddleware = array_map(fn($middleware) => basename(str_replace('\\', '/', $middleware)), $middlewareClass);
-
-        return array_map(function ($route) use ($mappedMiddleware) {
-            $route['middleware'] = array_merge(
-                $route['middleware'] ?? [],
-                $mappedMiddleware
-            );
-
-            return $route;
-        }, $routes);
-    }
-
-
-    /**
-     * Mengekstrak parameter dari path, seperti /check/{id}
-     *
-     * @param string $routePath
-     * @param string $actualPath
-     * @return array
-     */
-    protected function getParamsFromPath(string $routePath, string $actualPath): array
-    {
-        // Memecah path berdasarkan '/'
-        $routeParts = explode('/', $routePath);
-        $actualParts = explode('/', $actualPath);
-
-        // Menghapus bagian pertama dan terakhir jika kosong (path bisa dimulai atau diakhiri dengan '/')
-        $routeParts = array_filter($routeParts, fn($part) => $part !== '');
-        $actualParts = array_filter($actualParts, fn($part) => $part !== '');
-
-        // Menyusun parameter berdasarkan pola '{param}'
+        $routeParts = $this->splitPath($routePath);
+        $actualParts = $this->splitPath($actualPath);
         $params = [];
+
         foreach ($routeParts as $index => $part) {
-            // Mengecek apakah bagian path adalah parameter dengan format {param}
-            if (strpos($part, '{') === 0 && strpos($part, '}') === strlen($part) - 1) {
+            if ($this->isPathParameter($part)) {
                 $paramName = trim($part, '{}');
                 $params[$paramName] = $actualParts[$index] ?? null;
             }
@@ -224,213 +304,200 @@ class Router
         return $params;
     }
 
-
-    /**
-     * Menangani dan mendispatch request ke handler yang sesuai
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function dispatch(Request $request)
+    private function splitPath(string $path): array
     {
-        $path = $request->getPathInfo();
-        $method = $request->getMethod();
-
-        // Cek rute statis terlebih dahulu
-        if (isset($this->routeIndex['static'][$path])) {
-            $route = $this->routeIndex['static'][$path];
-
-            // Periksa metode HTTP
-            if (!in_array($method, $route['methods'])) {
-                return $this->createErrorResponse("Method {$method} not allowed for this route", 405);
-            }
-
-            return $this->handleRoute($route, $request);
-        }
-
-        // Jika tidak ditemukan, cari rute dinamis dengan regex
-        foreach ($this->routeIndex['dynamic'] as $route) {
-            $routePathPattern = preg_replace('/\{[a-zA-Z_][a-zA-Z0-9_]*\}/', '([a-zA-Z0-9_-]+)', $route['path']);
-            if (preg_match('#^' . $routePathPattern . '$#', $path, $matches)) {
-                // Ekstrak parameter dari URL yang cocok
-                $params = $this->getParamsFromPath($route['path'], $path);
-
-                // Periksa metode HTTP
-                if (!in_array($method, $route['methods'])) {
-                    return $this->createErrorResponse("Method {$method} not allowed for this route", 405);
-                }
-
-                return $this->handleRoute($route, $request);
-            }
-        }
-
-        return $this->createErrorResponse('Route not found', 404);
+        return array_values(array_filter(
+            explode('/', $path),
+            fn($part) => $part !== ''
+        ));
     }
 
-
-    /**
-     * Menangani eksekusi route, termasuk middleware dan handler
-     *
-     * @param array $route
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    private function handleRoute(array $route, Request $request)
+    private function isPathParameter(string $part): bool
     {
-        [$handlerClass, $handlerMethod] = explode('::', $route['handler']);
-        $handler = $this->container->make($handlerClass);
-        $params = $this->getParamsFromPath($route['path'], $request->getPathInfo());
-
-        $reflectionMethod = new ReflectionMethod($handlerClass, $handlerMethod);
-        $methodParams = $reflectionMethod->getParameters();
-        $args = $this->resolveMethodArgs($methodParams, $params, $request);
-
-        $middlewares = $route['middleware'] ?? [];
-        $response = $this->runMiddlewares($middlewares, $request, function () use ($handler, $handlerMethod, $args) {
-            return call_user_func_array([$handler, $handlerMethod], $args);
-        });
-
-        return response()->json($response);
+        return strpos($part, '{') === 0 &&
+               strpos($part, '}') === strlen($part) - 1;
     }
 
-    /**
-     * Menjalankan middleware untuk rute tertentu
-     *
-     * @param array $middlewares
-     * @param Request $request
-     * @param callable $next
-     * @return mixed
-     */
-    private function runMiddlewares(array $middlewares, Request $request, callable $next)
+    private function executeMiddlewareChain(array $middlewares, Request $request, callable $final)
     {
-        if (empty($middlewares)) {
-            return $next($request);
-        }
+        $compiled = $this->compileMiddleware($middlewares);
 
-        $middlewareName = array_shift($middlewares);
-        $middlewareClass = $this->mapMiddleware[$middlewareName] ?? "App\\Http\\Middlewares\\{$middlewareName}";
+        $pipeline = array_reduce(
+            array_reverse($compiled),
+            function ($next, $middleware) {
+                return function ($request) use ($next, $middleware) {
+                    return $middleware->handle($request, $next);
+                };
+            },
+            $final
+        );
 
-        if (!class_exists($middlewareClass)) {
-            return response()->json(['error' => "Middleware class '{$middlewareClass}' not found"], 404);
-        }
-
-        $middleware = new $middlewareClass();
-        return $middleware->handle($request, fn($request) => $this->runMiddlewares($middlewares, $request, $next));
+        return $pipeline($request);
     }
 
-    /**
-     * Membuat response error dalam format JSON
-     *
-     * @param string $message
-     * @param int $statusCode
-     * @return \Illuminate\Http\JsonResponse
-     */
-    private function createErrorResponse(string $message, int $statusCode)
+    private function resolveMiddlewareClass(string $middleware): string
+    {
+        return $this->middlewareMap[$middleware]
+            ?? "App\\Http\\Middlewares\\{$middleware}";
+    }
+
+    private function createErrorResponse(string $message, int $status)
     {
         return response()->json([
             'data' => null,
             'meta' => null,
             'error' => ['message' => $message]
-        ], $statusCode);
+        ], $status);
     }
 
-    /**
-     * Menangani exception yang terjadi selama proses dispatch
-     *
-     * @param Throwable $exception
-     * @return \Illuminate\Http\JsonResponse
-     */
-    private function handleException(Throwable $exception)
-    {
-        $exceptionHandler = new \App\Kernel\ExceptionHandler();
-        return $exceptionHandler->handle($exception);
-    }
-
-    /**
-     * Menyelesaikan argument method handler berdasarkan parameter dan request
-     *
-     * @param array $methodParams
-     * @param array $params
-     * @param Request $request
-     * @return array
-     */
-    private function resolveMethodArgs(array $methodParams, array $params, Request $request): array
-    {
-        $args = [];
-
-        foreach ($methodParams as $param) {
-            $paramType = $param->getType();
-
-            if ($paramType instanceof \ReflectionNamedType && !$paramType->isBuiltin()) {
-                $paramClass = new ReflectionClass($paramType->getName());
-
-                if ($paramClass->getName() === Request::class) {
-                    $args[] = $request;
-                } elseif (isset($params[$param->getName()])) {
-                    $args[] = $params[$param->getName()];
-                } else {
-                    $args[] = null;
-                }
-            } else {
-                $args[] = $params[$param->getName()] ?? ($param->isOptional() ? $param->getDefaultValue() : null);
-            }
-        }
-
-        return $args;
-    }
-
-    // Menambahkan fungsi untuk membaca atribut
-    private function getRoutesFromAttributes(): array
+    private function scanAttributeRoutes(): array
     {
         $routes = [];
-        $handlerDirectory = app_path('src'.DIRECTORY_SEPARATOR.'Modules'); // Sesuaikan dengan lokasi modul
+        $handlerDir = app_path('src/Modules');
 
-        // Menemukan semua kelas PHP dalam direktori tertentu
-        foreach (glob($handlerDirectory . '/*/Http/*.php') as $file) {
-            $className = $this->getClassNameFromFile($file);
+        foreach (glob($handlerDir . '/*/Http/*.php') as $file) {
+            $className = $this->resolveClassFromFile($file);
+            if (!class_exists($className)) continue;
 
-            if (class_exists($className)) {
-                $reflectionClass = new ReflectionClass($className);
+            $routes = array_merge(
+                $routes,
+                $this->extractRoutesFromClass($className)
+            );
+        }
 
-                foreach ($reflectionClass->getMethods() as $reflectionMethod) {
-                    $attributes = $reflectionMethod->getAttributes(Route::class); // Mengambil atribut Route
+        return $routes;
+    }
 
-                    foreach ($attributes as $attribute) {
-                        /** @var Route $routeAttribute */
-                        $routeAttribute = $attribute->newInstance(); // Mendapatkan instance dari atribut Route
+    private function resolveClassFromFile(string $file): string
+    {
+        $namespace = $this->extractNamespace($file);
+        $className = basename($file, '.php');
+        return $namespace . '\\' . $className;
+    }
 
-                        // Tambahkan route ke dalam daftar routes
-                        $routes[] = [
-                            'path' => $routeAttribute->path,
-                            'methods' => $routeAttribute->methods,
-                            'middleware' => $routeAttribute->middleware,
-                            'handler' => $className . '::' . $reflectionMethod->getName(),
-                        ];
-                    }
-                }
+    private function extractNamespace(string $file): string
+    {
+        $contents = file_get_contents($file);
+        if (preg_match('/namespace\s+(.+);/', $contents, $matches)) {
+            return $matches[1];
+        }
+        return '';
+    }
+
+    private function extractRoutesFromClass(string $className): array
+    {
+        $routes = [];
+        $reflection = new ReflectionClass($className);
+
+        foreach ($reflection->getMethods() as $method) {
+            $attributes = $method->getAttributes(Route::class);
+
+            foreach ($attributes as $attribute) {
+                $route = $attribute->newInstance();
+                $routes[] = [
+                    'path' => $route->path,
+                    'methods' => $route->methods,
+                    'middleware' => $route->middleware,
+                    'handler' => $className . '::' . $method->getName(),
+                ];
             }
         }
 
         return $routes;
     }
 
-// Fungsi untuk mendapatkan nama kelas dari path file PHP
-private function getClassNameFromFile(string $file): string
-{
-    $namespace = $this->getNamespaceFromFile($file);
-    $className = basename($file, '.php');
+    private function resolveMethodArguments(string $handlerClass, string $method, array $params, Request $request): array
+    {
+        $cacheKey = "{$handlerClass}::{$method}";
 
-    return $namespace . '\\' . $className;
-}
+        if (!isset($this->methodArgsCache[$cacheKey])) {
+            $reflection = new ReflectionMethod($handlerClass, $method);
+            $this->methodArgsCache[$cacheKey] = $this->analyzeMethodParameters($reflection->getParameters());
+        }
 
-// Fungsi untuk mendapatkan namespace dari file PHP
-private function getNamespaceFromFile(string $file): string
-{
-    $fileContents = file_get_contents($file);
-    if (preg_match('/namespace\s+(.+);/', $fileContents, $matches)) {
-        return $matches[1];
+        return $this->buildArgumentsList(
+            $this->methodArgsCache[$cacheKey],
+            $params,
+            $request
+        );
     }
 
-    return '';
-}
+    private function analyzeMethodParameters(array $parameters): array
+    {
+        return array_map(function($param) {
+            $type = $param->getType();
+            return [
+                'name' => $param->getName(),
+                'type' => $type instanceof \ReflectionNamedType ? $type->getName() : null,
+                'isBuiltin' => $type instanceof \ReflectionNamedType ? $type->isBuiltin() : true,
+                'isOptional' => $param->isOptional(),
+                'defaultValue' => $param->isOptional() ? $param->getDefaultValue() : null
+            ];
+        }, $parameters);
+    }
+
+    private function buildArgumentsList(array $parameterInfo, array $params, Request $request): array
+    {
+        return array_map(function($info) use ($params, $request) {
+            if ($info['type'] === Request::class) {
+                return $request;
+            }
+
+            if (isset($params[$info['name']])) {
+                return $params[$info['name']];
+            }
+
+            return $info['isOptional'] ? $info['defaultValue'] : null;
+        }, $parameterInfo);
+    }
+
+    private function resolveBuiltinParameter(\ReflectionParameter $param, array $params)
+    {
+        return $params[$param->getName()]
+            ?? ($param->isOptional() ? $param->getDefaultValue() : null);
+    }
+
+    private function resolveComplexParameter(
+        \ReflectionParameter $param,
+        \ReflectionNamedType $type,
+        array $params,
+        Request $request
+    ) {
+        if ($type->getName() === Request::class) {
+            return $request;
+        }
+
+        return $params[$param->getName()] ?? null;
+    }
+
+    private function compileMiddleware(array $middlewares): array
+    {
+        $key = implode('|', $middlewares);
+
+        if (!isset($this->compiledMiddleware[$key])) {
+            $this->compiledMiddleware[$key] = array_map(
+                fn($middleware) => $this->resolveMiddlewareInstance($middleware),
+                $middlewares
+            );
+        }
+
+        return $this->compiledMiddleware[$key];
+    }
+
+    private function resolveMiddlewareInstance(string $middleware): object
+    {
+        $class = $this->middlewareMap[$middleware]
+            ?? "App\\Http\\Middlewares\\{$middleware}";
+
+        return new $class();
+    }
+
+    private function resolveHandler(string $handlerClass): object
+    {
+        if (!isset($this->resolvedHandlers[$handlerClass])) {
+            $this->resolvedHandlers[$handlerClass] = $this->container->make($handlerClass);
+        }
+
+        return $this->resolvedHandlers[$handlerClass];
+    }
 }

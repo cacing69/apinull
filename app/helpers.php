@@ -23,6 +23,17 @@ if (!function_exists('app_path')) {
     }
 }
 
+if (!function_exists('storage_path')) {
+    function storage_path($path = "")
+    {
+        if(strlen($path) === 0) {
+            return APINULL_PATH.DIRECTORY_SEPARATOR."storage"; // Return the base application path if no path is provided.
+        } else {
+            return preg_replace('/\\'.DIRECTORY_SEPARATOR.'+/', DIRECTORY_SEPARATOR, APINULL_PATH.DIRECTORY_SEPARATOR."storage".DIRECTORY_SEPARATOR.$path);
+        }
+    }
+}
+
 /**
  * Dumps variables for debugging and halts script execution.
  *
