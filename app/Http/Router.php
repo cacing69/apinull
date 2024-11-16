@@ -37,7 +37,7 @@ class Router
         "auth" => AuthMiddleware::class,
     ];
 
-    private string $cacheFile;
+    // private string $cacheFile;
 
     /** @var array Global middleware applied to all routes */
     private array $globalMiddleware = [
@@ -52,43 +52,43 @@ class Router
 
     public function __construct(string $configFile, Container $container)
     {
-        $this->cacheFile = storage_path('framework/cache/routes.php');
+        // $this->cacheFile = storage_path('framework/cache/routes.php');
         $this->container = $container;
 
-        if ($this->shouldUseCache()) {
-            $this->loadFromCache();
-        } else {
-            $this->routes = Yaml::parseFile($configFile);
-            $this->initializeRoutes();
-            $this->cacheRoutes();
-        }
+        // if ($this->shouldUseCache()) {
+        //     $this->loadFromCache();
+        // } else {
+        $this->routes = Yaml::parseFile($configFile);
+        $this->initializeRoutes();
+            // $this->cacheRoutes();
+        // }
     }
 
-    private function shouldUseCache(): bool
-    {
-        return $_ENV["APP_ROUTE_CACHED"] === 'true' &&
-               file_exists($this->cacheFile) &&
-               filemtime($this->cacheFile) > $this->getLastConfigModified();
-    }
+    // private function shouldUseCache(): bool
+    // {
+    //     return $_ENV["APP_ROUTE_CACHED"] === 'true' &&
+    //            file_exists($this->cacheFile) &&
+    //            filemtime($this->cacheFile) > $this->getLastConfigModified();
+    // }
 
-    private function loadFromCache(): void
-    {
-        $cached = require $this->cacheFile;
-        $this->routeIndex = $cached['index'];
-        $this->allRoutes = $cached['routes'];
-    }
+    // private function loadFromCache(): void
+    // {
+    //     $cached = require $this->cacheFile;
+    //     $this->routeIndex = $cached['index'];
+    //     $this->allRoutes = $cached['routes'];
+    // }
 
-    private function cacheRoutes(): void
-    {
-        if ($_ENV["APP_ROUTE_CACHED"] === 'true') {
-            $content = '<?php return ' . var_export([
-                'index' => $this->routeIndex,
-                'routes' => $this->allRoutes
-            ], true) . ';';
+    // private function cacheRoutes(): void
+    // {
+    //     if ($_ENV["APP_ROUTE_CACHED"] === 'true') {
+    //         $content = '<?php return ' . var_export([
+    //             'index' => $this->routeIndex,
+    //             'routes' => $this->allRoutes
+    //         ], true) . ';';
 
-            file_put_contents($this->cacheFile, $content);
-        }
-    }
+    //         file_put_contents($this->cacheFile, $content);
+    //     }
+    // }
 
     private function getLastConfigModified(): int
     {
