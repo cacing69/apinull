@@ -1,5 +1,0 @@
-imports:
-  - { resource: src/Modules/User/user.routes.yaml }
-  - { resource: src/Modules/Scrape/scrape.routes.yaml }
-  - { resource: src/Modules/Auth/auth.routes.yaml }
-  - { resource: src/Modules/Home/home.routes.yaml }

@@ -58,18 +58,6 @@ class ModuleCreateCommand extends Command
         $routeContent = str_replace(["{moduleName}", "{lowerModuleName}"], [$name, strtolower($name)], $routeContent);
         file_put_contents($path . DIRECTORY_SEPARATOR . strtolower($name) . ".routes.yaml", $routeContent);
 
-        // Append the module route to the root route configuration file
-        $pathRootRoute = $app_path . "routes.yaml";
-        $rootRoute = file_get_contents($pathRootRoute);
-        $checkPatternRoute = '/src\/Modules\/' . $name . '\/' . strtolower($name) . '\.routes\.yaml/';
-
-        // If the module's route is not already included, append it to the routes.yaml file
-        if (!preg_match($checkPatternRoute, $rootRoute)) {
-            $newRootRoute = "{$rootRoute}  - { resource: src/Modules/{$name}/" . strtolower($name) . ".routes.yaml }\n";
-        }
-
-        file_put_contents(trim($pathRootRoute), $newRootRoute); // Write the updated root route file
-
         return Command::SUCCESS; // Return success if the module was created successfully
     }
 }

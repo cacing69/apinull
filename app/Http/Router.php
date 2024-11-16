@@ -5,8 +5,7 @@ namespace App\Http;
 use App\Http\Middlewares\{
     CorsMiddleware,
     FixHeadersMiddleware,
-    InputSanitizationMiddleware,
-    AuthMiddleware
+    InputSanitizationMiddleware
 };
 use App\Kernel\Container;
 use Illuminate\Http\Request;
@@ -25,47 +24,34 @@ class Router
 
     /** @var array Combined imported routes */
     private array $allRoutes = [];
-
-    /** @var array Route lookup index */
-    private array $routeIndex = [];
+    private array $dynamicRoutes = [];
 
     /** @var array Routes with duplicate paths */
     private array $duplicates = [];
 
-    /** @var array Middleware name to class mapping */
-    private array $middlewareMap = [
-        "auth" => AuthMiddleware::class,
-    ];
-
     /** @var array Global middleware applied to all routes */
-    private array $globalMiddleware = [
+    private const GLOBAL_MIDDLEWARE = [
         CorsMiddleware::class,
         FixHeadersMiddleware::class,
         InputSanitizationMiddleware::class,
     ];
 
-    private array $compiledMiddleware = [];
-
     private array $methodArgsCache = [];
+
+    // Menyimpan rute statis dengan hash
+    private array $staticRoutes = [];
+
+    private array $paramCache = [];
+
+    private MiddlewareExecutor $middlewareExecutor;
 
     public function __construct(string $configFile, Container $container)
     {
         $this->container = $container;
+        $this->middlewareExecutor = new MiddlewareExecutor();
 
-        $this->routes = Yaml::parseFile($configFile);
+        // $this->routes = Yaml::parseFile($configFile);
         $this->initializeRoutes();
-    }
-
-    private function getLastConfigModified(): int
-    {
-        $configFiles = [
-            // Main config file
-            app_path('routes.yaml'),
-            // Scan for all route files
-            ...glob(app_path('src/Modules/**/*.routes.yaml'))
-        ];
-
-        return max(array_map('filemtime', $configFiles));
     }
 
     private function initializeRoutes(): void
@@ -78,23 +64,16 @@ class Router
 
     private function importConfiguredRoutes(): void
     {
-        if (!isset($this->routes['imports'])) {
-            return;
-        }
+        $this->routes = glob(app_path("src/Modules/*/*.routes.yaml"));
 
-        foreach ($this->routes['imports'] as $import) {
+        foreach ($this->routes as $import) {
             $this->processRouteImport($import);
         }
     }
 
-    private function processRouteImport(array $import): void
+    private function processRouteImport(string $import): void
     {
-        $filePath = app_path($import['resource']);
-        if (!file_exists($filePath)) {
-            return;
-        }
-
-        $importedRoutes = Yaml::parseFile($filePath);
+        $importedRoutes = Yaml::parseFile($import);
         $this->processRouteGroups($importedRoutes);
         $this->trackDuplicateRoutes($importedRoutes);
 
@@ -136,30 +115,38 @@ class Router
 
     private function buildRouteIndexes(): void
     {
-        $this->routeIndex = [
-            'static' => [],
-            'dynamic' => []
-        ];
-
         foreach ($this->allRoutes as $route) {
-            $this->indexRoute($route);
+            if ($this->isStaticRoute($route)) {
+                $this->indexStaticRoute($route);
+            } else {
+                $this->indexDynamicRoute($route);
+            }
         }
     }
 
-    private function indexRoute(array $route): void
+    private function isStaticRoute(array $route): bool
     {
-        if (strpos($route['path'], '{') !== false) {
-            $this->routeIndex['dynamic'][] = $route;
-        } else {
-            $this->routeIndex['static'][$route['path']] = $route;
+        return strpos($route['path'], '{') === false;
+    }
+
+    private function indexStaticRoute(array $route): void
+    {
+        $routeHash = md5($route['path']);
+        foreach ($route['methods'] as $method) {
+            $this->staticRoutes[$routeHash][$method] = $route;
         }
+    }
+
+    private function indexDynamicRoute(array $route): void
+    {
+        $this->dynamicRoutes[] = $route;
     }
 
     private function applyGlobalMiddleware(): void
     {
         $middlewareNames = array_map(
             fn($middleware) => basename(str_replace('\\', '/', $middleware)),
-            $this->globalMiddleware
+            self::GLOBAL_MIDDLEWARE
         );
 
         $this->allRoutes = array_map(
@@ -176,45 +163,44 @@ class Router
         );
         return $route;
     }
-
     public function dispatch(Request $request)
     {
         try {
-            $path = $request->getPathInfo();
-            $method = $request->getMethod();
-
-            $route = $this->findMatchingRoute($path);
+            $route = $this->findMatchingRoute($request->getPathInfo(), $request->getMethod());
             if (!$route) {
                 return $this->createErrorResponse('Route not found', 404);
             }
 
-            if (!in_array($method, $route['methods'])) {
-                return $this->createErrorResponse("Method {$method} not allowed", 405);
-            }
-
             return $this->handleRoute($route, $request);
         } catch (Throwable $e) {
-            return response_error($e->getMessage());
+            return $this->createErrorResponse($e->getMessage(), $e->getCode());
         }
     }
 
-    private function findMatchingRoute(string $path): ?array
+    private function findMatchingRoute(string $path, string $method): ?array
     {
-        // Check static routes first
-        if (isset($this->routeIndex['static'][$path])) {
-            return $this->routeIndex['static'][$path];
+        $routeHash = md5($path);
+
+        // Pencocokan rute statis menggunakan hash
+        if (isset($this->staticRoutes[$routeHash][$method])) {
+            return $this->staticRoutes[$routeHash][$method];
         }
 
-        // Check dynamic routes
-        return $this->findDynamicRoute($path);
+        // Jika tidak ditemukan, coba rute dinamis
+        return $this->findDynamicRoute($path, $method);
     }
 
-    private function findDynamicRoute(string $path): ?array
+    private function findDynamicRoute(string $path, string $method): ?array
     {
-        foreach ($this->routeIndex['dynamic'] as $route) {
-            $pattern = $this->createRoutePattern($route['path']);
-            if (preg_match($pattern, $path)) {
-                return $route;
+        foreach ($this->dynamicRoutes as $route) {
+            // Periksa apakah metode HTTP cocok
+            if (in_array($method, $route['methods'])) {
+                // Buat pola untuk mencocokkan rute dinamis
+                $pattern = $this->createRoutePattern($route['path']);
+                if (preg_match($pattern, $path, $matches)) {
+                    // Jika cocok, kembalikan rute
+                    return $route;
+                }
             }
         }
         return null;
@@ -222,12 +208,18 @@ class Router
 
     private function createRoutePattern(string $routePath): string
     {
-        $pattern = preg_replace(
-            '/\{[a-zA-Z_][a-zA-Z0-9_]*\}/',
-            '([a-zA-Z0-9_-]+)?',
-            $routePath
-        );
-        return '#^' . $pattern . '$#';
+        static $patterns = [];
+
+        if (!isset($patterns[$routePath])) {
+            $pattern = preg_replace(
+                '/\{[a-zA-Z_][a-zA-Z0-9_]*\}/',
+                '([a-zA-Z0-9_-]+)?',
+                $routePath
+            );
+            $patterns[$routePath] = '#^' . $pattern . '$#';
+        }
+
+        return $patterns[$routePath];
     }
 
     private function handleRoute(array $route, Request $request)
@@ -235,8 +227,6 @@ class Router
         [$class, $method] = explode('::', $route['handler']);
         $handler = $this->container->make($class);
         $params = $this->extractRouteParams($route['path'], $request->getPathInfo());
-
-        // $reflectionMethod = new ReflectionMethod($class, $method);
 
         $args = $this->resolveMethodArguments(
             $class,
@@ -246,7 +236,7 @@ class Router
         );
 
         $middlewares = $route['middleware'] ?? [];
-        $response = $this->executeMiddlewareChain($middlewares, $request, function() use ($handler, $method, $args) {
+        $response = $this->middlewareExecutor->execute($middlewares, $request, function() use ($handler, $method, $args) {
             return call_user_func_array([$handler, $method], $args);
         });
 
@@ -255,6 +245,53 @@ class Router
 
     private function extractRouteParams(string $routePath, string $actualPath): array
     {
+        $cacheKey = $routePath . '|' . $actualPath;
+        if (isset($this->paramCache[$cacheKey])) {
+            return $this->paramCache[$cacheKey];
+        }
+
+        $params = $this->doExtractRouteParams($routePath, $actualPath);
+
+        // Validasi parameter
+        $requiredParams = $this->getRequiredParams($routePath);
+
+        foreach ($requiredParams as $paramName) {
+            if (!isset($params[$paramName]) || $params[$paramName] === null) {
+                throw new \InvalidArgumentException("Missing required parameter: {$paramName}", 400);
+            }
+        }
+
+        // Validasi tipe data jika diperlukan
+        $params = $this->validateParameters($params);
+
+        $this->paramCache[$cacheKey] = $params;
+        return $params;
+    }
+
+    private function getRequiredParams(string $routePath): array
+    {
+        preg_match_all('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', $routePath, $matches);
+        return $matches[1];  // Nama parameter dari path seperti {id}
+    }
+
+    private function validateParameters(array $params): array
+    {
+        foreach ($params as $key => $value) {
+            if ($key === 'id' && !is_numeric($value)) {
+                throw new \InvalidArgumentException("Parameter 'id' must be numeric.", 400);
+            }
+
+            if ($key === 'uuid' && !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/', $value)) {
+                throw new \InvalidArgumentException("The 'uuid' parameter must be a valid UUID.", 400);
+            }
+        }
+
+        return $params;
+    }
+
+    private function doExtractRouteParams(string $routePath, string $actualPath): array
+    {
+        // Ekstraksi parameter path yang sebenarnya
         $routeParts = $this->splitPath($routePath);
         $actualParts = $this->splitPath($actualPath);
         $params = [];
@@ -263,11 +300,6 @@ class Router
             if ($this->isPathParameter($part)) {
                 $paramName = trim($part, '{}');
                 $params[$paramName] = $actualParts[$index] ?? null;
-
-                // Validasi: Pastikan parameter memiliki nilai
-                if (is_null($params[$paramName]) || $params[$paramName] === '') {
-                    throw new \InvalidArgumentException("Route parameter '{$paramName}' is required and cannot be empty.");
-                }
             }
         }
 
@@ -286,23 +318,6 @@ class Router
     {
         return strpos($part, '{') === 0 &&
                strpos($part, '}') === strlen($part) - 1;
-    }
-
-    private function executeMiddlewareChain(array $middlewares, Request $request, callable $final)
-    {
-        $compiled = $this->compileMiddleware($middlewares);
-
-        $pipeline = array_reduce(
-            array_reverse($compiled),
-            function ($next, $middleware) {
-                return function ($request) use ($next, $middleware) {
-                    return $middleware->handle($request, $next);
-                };
-            },
-            $final
-        );
-
-        return $pipeline($request);
     }
 
     private function createErrorResponse(string $message, int $status)
@@ -347,9 +362,14 @@ class Router
         }
         return '';
     }
-
     private function extractRoutesFromClass(string $className): array
     {
+        static $classRoutes = [];
+
+        if (isset($classRoutes[$className])) {
+            return $classRoutes[$className];
+        }
+
         $routes = [];
         $reflection = new ReflectionClass($className);
 
@@ -367,6 +387,7 @@ class Router
             }
         }
 
+        $classRoutes[$className] = $routes;
         return $routes;
     }
 
@@ -413,27 +434,5 @@ class Router
 
             return $info['isOptional'] ? $info['defaultValue'] : null;
         }, $parameterInfo);
-    }
-
-    private function compileMiddleware(array $middlewares): array
-    {
-        $key = implode('|', $middlewares);
-
-        if (!isset($this->compiledMiddleware[$key])) {
-            $this->compiledMiddleware[$key] = array_map(
-                fn($middleware) => $this->resolveMiddlewareInstance($middleware),
-                $middlewares
-            );
-        }
-
-        return $this->compiledMiddleware[$key];
-    }
-
-    private function resolveMiddlewareInstance(string $middleware): object
-    {
-        $class = $this->middlewareMap[$middleware]
-            ?? "App\\Http\\Middlewares\\{$middleware}";
-
-        return new $class();
     }
 }

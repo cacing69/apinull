@@ -3,9 +3,15 @@ routes:
   - path: /
     handler: Modules\Home\Http\HomeHandler::index
     methods: [GET]
-  - path: /path/{id}
+  - path: /path/{uuid}
     handler: Modules\Home\Http\HomeHandler::path
     methods: [GET]
+  - path: /path/{id}
+    handler: Modules\Home\Http\HomeHandler::pathPost
+    methods: [POST]
   - path: /dump
     handler: Modules\Home\Http\HomeHandler::dump
     methods: [GET]
+  - path: /dump
+    handler: Modules\Home\Http\HomeHandler::dumpPost
+    methods: [POST]
