@@ -259,7 +259,7 @@ class Router
     {
         $pattern = preg_replace(
             '/\{[a-zA-Z_][a-zA-Z0-9_]*\}/',
-            '([a-zA-Z0-9_-]+)',
+            '([a-zA-Z0-9_-]+)?',
             $routePath
         );
         return '#^' . $pattern . '$#';
@@ -298,6 +298,11 @@ class Router
             if ($this->isPathParameter($part)) {
                 $paramName = trim($part, '{}');
                 $params[$paramName] = $actualParts[$index] ?? null;
+
+                // Validasi: Pastikan parameter memiliki nilai
+                if (is_null($params[$paramName]) || $params[$paramName] === '') {
+                    throw new \InvalidArgumentException("Route parameter '{$paramName}' is required and cannot be empty.");
+                }
             }
         }
 
