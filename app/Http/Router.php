@@ -48,7 +48,6 @@ class Router
 
     private array $compiledMiddleware = [];
 
-    private array $resolvedHandlers = [];
     private array $methodArgsCache = [];
 
     public function __construct(string $configFile, Container $container)
@@ -340,12 +339,6 @@ class Router
         return $pipeline($request);
     }
 
-    private function resolveMiddlewareClass(string $middleware): string
-    {
-        return $this->middlewareMap[$middleware]
-            ?? "App\\Http\\Middlewares\\{$middleware}";
-    }
-
     private function createErrorResponse(string $message, int $status)
     {
         return response()->json([
@@ -456,25 +449,6 @@ class Router
         }, $parameterInfo);
     }
 
-    private function resolveBuiltinParameter(\ReflectionParameter $param, array $params)
-    {
-        return $params[$param->getName()]
-            ?? ($param->isOptional() ? $param->getDefaultValue() : null);
-    }
-
-    private function resolveComplexParameter(
-        \ReflectionParameter $param,
-        \ReflectionNamedType $type,
-        array $params,
-        Request $request
-    ) {
-        if ($type->getName() === Request::class) {
-            return $request;
-        }
-
-        return $params[$param->getName()] ?? null;
-    }
-
     private function compileMiddleware(array $middlewares): array
     {
         $key = implode('|', $middlewares);
@@ -495,14 +469,5 @@ class Router
             ?? "App\\Http\\Middlewares\\{$middleware}";
 
         return new $class();
-    }
-
-    private function resolveHandler(string $handlerClass): object
-    {
-        if (!isset($this->resolvedHandlers[$handlerClass])) {
-            $this->resolvedHandlers[$handlerClass] = $this->container->make($handlerClass);
-        }
-
-        return $this->resolvedHandlers[$handlerClass];
     }
 }
