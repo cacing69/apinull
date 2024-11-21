@@ -5,3 +5,6 @@ password:
   required: true
   min: 8
   confirmed: true
+
+
+email => "required|min:8"

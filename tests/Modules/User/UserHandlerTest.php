@@ -26,6 +26,8 @@ class UserHandlerTest extends TestCase
         // Data yang akan dikirim
         $data = ['name' => 'John Doe'];
 
+        // $save = $repo->save(1) //["id", name]
+
         // Mocking UserService untuk metode createUser
         // $this->userService->method('createUser')
         //     ->with($data)
@@ -39,6 +41,8 @@ class UserHandlerTest extends TestCase
         // $response = $this->userHandler->ping();
 
         // Assert hasil yang diharapkan
-        // $this->assertEquals(['ping' => 'pong'], $response);
+        // $this->assertEquals(['ping' => 'pong'], $save);
+
+        //
     }
 }

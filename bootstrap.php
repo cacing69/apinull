@@ -2,7 +2,7 @@
 require_once __DIR__ . '/vendor/autoload.php'; // Autoload dependencies using Composer
 
 use App\Kernel\InitDB; // Import InitDB class to initialize the database
-use App\Http\Router; // Import Router class for routing HTTP requests
+use App\Http\RouterDispatcher; // Import Router class for routing HTTP requests
 use Dotenv\Dotenv; // Import Dotenv class to load environment variables
 use Illuminate\Http\Request; // Import Request class from Laravel's HTTP package
 
@@ -31,7 +31,7 @@ InitDB::getInstance(); // This will set up the database connection and initializ
 $request = Request::capture(); // Capture the incoming HTTP request
 
 // Initialize the Router and load routes from the routes.yaml file
-$router = new Router(__DIR__ . '/routes.yaml', $container);
+$router = new RouterDispatcher(__DIR__ . '/routes.yaml', $container);
 
 // Dispatch the captured request to find the appropriate handler and generate a response
 $response = $router->dispatch($request);

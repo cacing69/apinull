@@ -15,6 +15,10 @@ class UserRepository {
         return $user;
     }
 
+    // DB -> (Service/Repository) -> Controller -> Route
+
+    //delete
+
     public function isEmailExists($email)
     {
         return User::where("email", $email)->exists();

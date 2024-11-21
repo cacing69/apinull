@@ -8,17 +8,6 @@ use Illuminate\Http\Request;  // Import the Request class to access HTTP request
  */
 class CorsMiddleware
 {
-    /**
-     * Handle the incoming request and add CORS headers.
-     *
-     * This middleware adds the necessary CORS headers to allow cross-origin requests
-     * from any origin, with specific HTTP methods, and custom headers. It also handles
-     * preflight OPTIONS requests by responding with a 204 status code and the appropriate headers.
-     *
-     * @param Request $request The incoming HTTP request.
-     * @param callable $next A callback to pass the request to the next middleware.
-     * @return mixed The response after handling the CORS headers and processing the request.
-     */
     public function handle(Request $request, callable $next)
     {
         // Add Access-Control-Allow-Origin header to allow all origins

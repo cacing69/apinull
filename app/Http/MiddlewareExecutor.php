@@ -44,9 +44,16 @@ class MiddlewareExecutor
 
     private function resolveMiddlewareInstance(string $middleware): object
     {
-        $class = $this->middlewareMap[$middleware]
-            ?? "App\\Http\\Middlewares\\{$middleware}";
+        return new ($this->getMiddlewareClass($middleware));
+    }
 
-        return new $class();
+    private function getMiddlewareClass($string): string
+    {
+        if (str_contains($string, '\\')) {
+            return $string;
+        } else {
+            return $this->middlewareMap[$string]
+            ?? "App\\Http\\Middlewares\\{$string}";
+        }
     }
 }
