@@ -44,7 +44,7 @@ class RouterDispatcher
 
     private MiddlewareExecutor $middlewareExecutor;
 
-    public function __construct(string $configFile, Container $container)
+    public function __construct(Container $container)
     {
         $this->container = $container;
         $this->middlewareExecutor = new MiddlewareExecutor();

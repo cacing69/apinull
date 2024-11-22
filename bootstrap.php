@@ -31,7 +31,7 @@ InitDB::getInstance(); // This will set up the database connection and initializ
 $request = Request::capture(); // Capture the incoming HTTP request
 
 // Initialize the Router and load routes from the routes.yaml file
-$router = new RouterDispatcher(__DIR__ . '/routes.yaml', $container);
+$router = new RouterDispatcher($container);
 
 // Dispatch the captured request to find the appropriate handler and generate a response
 $response = $router->dispatch($request);

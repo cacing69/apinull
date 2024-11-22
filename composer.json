@@ -41,8 +41,8 @@
   },
   "scripts": {
     "start": "php -S 127.0.0.1:8000 -t api",
-    "test": "phpunit --colors=always",
-    "test-coverage": "phpunit --coverage-html coverage",
+    "test": "vendor/bin/phpunit tests",
+    "test-coverage": "vendor/bin/phpunit tests --coverage-html coverage",
     "migrate-run": "php vendor/bin/doctrine-migrations migrations:migrate --configuration=config/migrations.php --db-configuration=config/migrations-db.php",
     "migrate-create": "php vendor/bin/doctrine-migrations migrations:generate --configuration=config/migrations.php --db-configuration=config/migrations-db.php",
     "migrate-status": "php vendor/bin/doctrine-migrations migrations:status --configuration=config/migrations.php --db-configuration=config/migrations-db.php",
